@@ -271,6 +271,23 @@
             </button>
           </div>
 
+          <!-- Zoom Controller: 聯絡簿區域縮放控制 -->
+          <div class="bg-slate-950/70 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1" title="聯絡簿區域縮放控制">
+            <button id="btn-notebook-zoom-out" class="w-7 h-7 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-black transition active:scale-90" title="縮小 (－10%)">
+              －
+            </button>
+            <button id="btn-notebook-zoom-reset" class="px-2 h-7 flex items-center justify-center rounded-xl bg-slate-900 hover:bg-slate-800 text-sky-300 text-xs font-bold font-mono transition active:scale-95" title="點擊重設 100% / 再次點擊切換最適">
+              <span id="notebook-zoom-label">100%</span>
+            </button>
+            <button id="btn-notebook-zoom-in" class="w-7 h-7 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-black transition active:scale-90" title="放大 (＋10%)">
+              ＋
+            </button>
+            <button id="btn-notebook-zoom-fit" class="px-2.5 h-7 flex items-center justify-center space-x-1 rounded-xl bg-slate-800 hover:bg-sky-600/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition active:scale-95 border border-slate-700/80" title="智慧最適大小（自動放大填滿空間）">
+              <span>⛶</span>
+              <span>適應</span>
+            </button>
+          </div>
+
           <!-- Show/Hide Curtain Button -->
           <button id="btn-toggle-mask" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition active:scale-95 shadow">
             <span id="mask-icon">🙈</span>
@@ -280,10 +297,10 @@
       </div>
 
       <!-- Main Notebook Body: Scaled Proportionally, No Clipping, No Flickering -->
-      <div class="flex-1 my-3 bg-slate-950/60 rounded-2xl p-5 border border-slate-800/80 overflow-y-auto relative flex flex-col justify-between">
+      <div id="notebook-scroll-wrapper" class="flex-1 my-3 bg-slate-950/60 rounded-2xl p-4 border border-slate-800/80 overflow-auto relative flex flex-col justify-between">
 
         <!-- Active Visible Content -->
-        <div id="notebook-content-container" class="space-y-4">
+        <div id="notebook-content-container" class="space-y-4 origin-top transition-transform duration-100">
           <!-- Dynamic lines rendered here -->
         </div>
 
@@ -301,20 +318,25 @@
         </div>
 
         <!-- Bottom Feature: Daily Brain Teaser Riddle (腦筋急轉彎) -->
-        <div class="mt-4 pt-3 border-t border-slate-800/80 shrink-0">
-          <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 p-3.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+        <div id="riddle-container-box" class="mt-3 pt-2.5 border-t border-slate-800/80 shrink-0">
+          <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
             <div class="flex items-start space-x-3 flex-1 pr-3">
               <span class="text-2xl shrink-0">💡</span>
-              <div>
+              <div class="flex-1">
                 <div class="flex items-center space-x-2">
                   <span class="text-xs font-black text-amber-300 tracking-wider">今日大腦急轉彎</span>
                   <span class="text-[10px] text-slate-400">大腦開機趣味題</span>
+                  <button id="btn-toggle-riddle-fold" class="text-[10px] text-slate-400 hover:text-amber-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700/60 ml-2 transition" title="收合或展開急轉彎，釋放更多聯絡簿空間">
+                    收合
+                  </button>
                 </div>
-                <p id="riddle-question" class="text-sm text-slate-200 font-bold mt-0.5">什麼東西越洗越髒？</p>
-                <p id="riddle-answer" class="text-xs text-emerald-400 font-black mt-1 hidden">【謎底】：水！因為洗了髒東西，水就變髒啦～</p>
+                <div id="riddle-content-wrapper">
+                  <p id="riddle-question" class="text-sm text-slate-200 font-bold mt-0.5">什麼東西越洗越髒？</p>
+                  <p id="riddle-answer" class="text-xs text-emerald-400 font-black mt-1 hidden">【謎底】：水！因為洗了髒東西，水就變髒啦～</p>
+                </div>
               </div>
             </div>
-            <div class="flex flex-col space-y-1.5 shrink-0">
+            <div id="riddle-buttons-wrapper" class="flex flex-col space-y-1.5 shrink-0">
               <button id="btn-reveal-riddle" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition active:scale-95 shadow">
                 看謎底
               </button>
@@ -2211,6 +2233,10 @@
         } else {
           container.innerHTML = renderTextWithMode(notebook.text, mode);
         }
+        applyNotebookZoom(notebookZoomScale, isNotebookAutoFit);
+        if (isNotebookAutoFit) {
+          requestAnimationFrame(autoFitNotebook);
+        }
       }
     }
 
@@ -2383,6 +2409,128 @@
       toastTimeout = setTimeout(() => {
         toast.classList.add('hidden');
       }, 2600);
+    }
+
+    // ==========================================
+    // NOTEBOOK ZOOM & RIDDLE FOLD CONTROLLER
+    // ==========================================
+    let notebookZoomScale = parseFloat(localStorage.getItem('class_helper_notebook_zoom')) || 1.0;
+    let isNotebookAutoFit = localStorage.getItem('class_helper_notebook_zoom_auto') === 'true';
+    let isRiddleFolded = localStorage.getItem('class_helper_riddle_folded') === 'true';
+
+    function applyNotebookZoom(scale, isAuto = false) {
+      notebookZoomScale = Math.max(0.5, Math.min(2.5, Math.round(scale * 100) / 100));
+      isNotebookAutoFit = isAuto;
+      try {
+        localStorage.setItem('class_helper_notebook_zoom', notebookZoomScale);
+        localStorage.setItem('class_helper_notebook_zoom_auto', isAuto ? 'true' : 'false');
+      } catch (e) {}
+
+      const label = document.getElementById('notebook-zoom-label');
+      if (label) {
+        label.textContent = `${Math.round(notebookZoomScale * 100)}%`;
+      }
+
+      const container = document.getElementById('notebook-content-container');
+      if (container) {
+        if ('zoom' in document.documentElement.style) {
+          container.style.zoom = notebookZoomScale;
+          container.style.transform = '';
+          container.style.transformOrigin = '';
+        } else {
+          container.style.transform = `scale(${notebookZoomScale})`;
+          container.style.transformOrigin = 'top center';
+        }
+      }
+
+      const btnFit = document.getElementById('btn-notebook-zoom-fit');
+      if (btnFit) {
+        if (isAuto) {
+          btnFit.className = 'px-2.5 h-7 flex items-center justify-center space-x-1 rounded-xl bg-sky-600 text-white border border-sky-400 text-xs font-black transition active:scale-95 shadow';
+        } else {
+          btnFit.className = 'px-2.5 h-7 flex items-center justify-center space-x-1 rounded-xl bg-slate-800 hover:bg-sky-600/30 text-amber-300 hover:text-amber-200 text-xs font-bold transition active:scale-95 border border-slate-700/80';
+        }
+      }
+    }
+
+    function autoFitNotebook() {
+      const scrollArea = document.getElementById('notebook-scroll-wrapper');
+      const container = document.getElementById('notebook-content-container');
+      if (!scrollArea || !container) return;
+
+      const sheet = container.querySelector('.bg-white') || container.firstElementChild;
+      if (!sheet) return;
+
+      // Temporarily clear zoom to measure unzoomed dimensions accurately
+      const prevZoom = container.style.zoom;
+      const prevTransform = container.style.transform;
+      container.style.zoom = '1';
+      container.style.transform = 'none';
+
+      const naturalW = sheet.offsetWidth || sheet.scrollWidth || 540;
+      const naturalH = sheet.offsetHeight || sheet.scrollHeight || 460;
+
+      const riddleBox = document.getElementById('riddle-container-box');
+      const riddleH = (riddleBox && !isRiddleFolded) ? (riddleBox.offsetHeight || 80) : 32;
+
+      const availW = Math.max(200, scrollArea.clientWidth - 32);
+      const availH = Math.max(200, scrollArea.clientHeight - riddleH - 32);
+
+      if (naturalW > 0 && naturalH > 0) {
+        const scaleX = availW / naturalW;
+        const scaleY = availH / naturalH;
+        let bestScale = Math.min(scaleX, scaleY);
+        // Clamp between 0.75 and 2.2
+        bestScale = Math.min(2.2, Math.max(0.75, bestScale));
+        // Round to nearest 0.05 step
+        bestScale = Math.floor(bestScale * 20) / 20;
+        applyNotebookZoom(bestScale, true);
+      } else {
+        applyNotebookZoom(1.0, false);
+      }
+    }
+
+    function zoomNotebook(delta) {
+      applyNotebookZoom(notebookZoomScale + delta, false);
+      sound.playTone(600 + (notebookZoomScale * 150), 0.06, 'sine', 0.1);
+      showToast(`聯絡簿縮放：${Math.round(notebookZoomScale * 100)}%`, '🔍');
+    }
+
+    function toggleZoomResetOrFit() {
+      if (Math.abs(notebookZoomScale - 1.0) > 0.02) {
+        applyNotebookZoom(1.0, false);
+        showToast('已重設為標準大小 100%', '🔍');
+      } else {
+        autoFitNotebook();
+        showToast(`已切換為大螢幕最適大小 (${Math.round(notebookZoomScale * 100)}%)`, '⛶');
+      }
+      sound.playTone(750, 0.08, 'sine', 0.12);
+    }
+
+    function updateRiddleFoldState() {
+      const wrapper = document.getElementById('riddle-content-wrapper');
+      const btns = document.getElementById('riddle-buttons-wrapper');
+      const toggleBtn = document.getElementById('btn-toggle-riddle-fold');
+      if (!wrapper || !toggleBtn) return;
+
+      if (isRiddleFolded) {
+        wrapper.classList.add('hidden');
+        if (btns) btns.classList.add('hidden');
+        toggleBtn.textContent = '展開';
+        toggleBtn.className = 'text-[10px] text-amber-300 hover:text-white px-2 py-0.5 rounded bg-amber-950/60 border border-amber-600/60 ml-2 transition';
+      } else {
+        wrapper.classList.remove('hidden');
+        if (btns) btns.classList.remove('hidden');
+        toggleBtn.textContent = '收合';
+        toggleBtn.className = 'text-[10px] text-slate-400 hover:text-amber-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700/60 ml-2 transition';
+      }
+      try {
+        localStorage.setItem('class_helper_riddle_folded', isRiddleFolded ? 'true' : 'false');
+      } catch (e) {}
+
+      if (isNotebookAutoFit) {
+        setTimeout(autoFitNotebook, 60);
+      }
     }
 
     // RENDER ALL
@@ -2789,6 +2937,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       renderAll();
       renderRiddle();
+      updateRiddleFoldState();
+      if (isNotebookAutoFit) {
+        setTimeout(autoFitNotebook, 150);
+      } else {
+        applyNotebookZoom(notebookZoomScale, false);
+      }
       setInterval(updateClock, 1000);
       updateClock();
 
@@ -2978,6 +3132,59 @@
         currentRiddleIndex = (currentRiddleIndex + 1) % RIDDLES.length;
         renderRiddle();
         sound.playTone(700, 0.1, 'sine', 0.15);
+      });
+
+      // Riddle fold toggle
+      const btnFoldRiddle = document.getElementById('btn-toggle-riddle-fold');
+      if (btnFoldRiddle) {
+        btnFoldRiddle.addEventListener('click', () => {
+          isRiddleFolded = !isRiddleFolded;
+          updateRiddleFoldState();
+          sound.playTone(isRiddleFolded ? 520 : 680, 0.06, 'sine', 0.1);
+          showToast(isRiddleFolded ? '已收合趣味題（釋放聯絡簿空間）' : '已展開趣味題', '💡');
+        });
+      }
+
+      // Notebook Zoom Controls
+      const btnZoomIn = document.getElementById('btn-notebook-zoom-in');
+      const btnZoomOut = document.getElementById('btn-notebook-zoom-out');
+      const btnZoomReset = document.getElementById('btn-notebook-zoom-reset');
+      const btnZoomFit = document.getElementById('btn-notebook-zoom-fit');
+
+      if (btnZoomIn) btnZoomIn.addEventListener('click', () => zoomNotebook(0.1));
+      if (btnZoomOut) btnZoomOut.addEventListener('click', () => zoomNotebook(-0.1));
+      if (btnZoomReset) btnZoomReset.addEventListener('click', toggleZoomResetOrFit);
+      if (btnZoomFit) btnZoomFit.addEventListener('click', () => {
+        autoFitNotebook();
+        sound.playTone(720, 0.08, 'sine', 0.12);
+        showToast(`已自動適應大螢幕最佳比例 (${Math.round(notebookZoomScale * 100)}%)`, '⛶');
+      });
+
+      // Mouse wheel zoom (Ctrl + Wheel) on notebook area
+      const scrollWrapper = document.getElementById('notebook-scroll-wrapper');
+      if (scrollWrapper) {
+        scrollWrapper.addEventListener('wheel', (e) => {
+          if (e.ctrlKey) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.05 : -0.05;
+            applyNotebookZoom(notebookZoomScale + delta, false);
+            const label = document.getElementById('notebook-zoom-label');
+            if (label) label.textContent = `${Math.round(notebookZoomScale * 100)}%`;
+          }
+        }, { passive: false });
+
+        // Double click to toggle between standard and fit
+        scrollWrapper.addEventListener('dblclick', (e) => {
+          if (e.target.closest('button, input, textarea, a')) return;
+          toggleZoomResetOrFit();
+        });
+      }
+
+      // Window resize re-fit if in auto mode
+      window.addEventListener('resize', () => {
+        if (isNotebookAutoFit) {
+          autoFitNotebook();
+        }
       });
 
       // Password Modal Open/Close
