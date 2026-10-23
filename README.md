@@ -1,6 +1,8 @@
 # 🏫 班級早修小幫手 (Classroom Morning Assistant)
 ### 專為國小 75 吋觸控大螢幕設計・遊戲化多班級存檔・總管理員控制台・Firebase 跨裝置即時同步
 
+🔗 **正式版直接開啟網址**：[https://arthur0213-tech.github.io/class-morning-helper/](https://arthur0213-tech.github.io/class-morning-helper/)
+
 ---
 
 ## 🌟 核心特色
@@ -27,6 +29,26 @@
 6. **離線/雲端雙引擎儲存**：
    - **本機離線模式**：預設使用瀏覽器 `localStorage`，重新整理或重開機資料永久保存。
    - **Firebase 即時同步**：啟用 Google Firebase Realtime Database 後，老師手機、筆電與教室大螢幕雙向即時毫秒級同步！
+
+---
+
+## 🚀 部署上線指南
+
+### 方式一：交由 Google Antigravity 全自動部署（最推薦）
+1. 將本 ZIP 壓縮檔解壓縮後，將整個資料夾交給 Google Antigravity。
+2. 直接複製專案內的 `ANTIGRAVITY_PROMPT.md` 內容貼給 Antigravity。
+3. Antigravity 將自動完成 GitHub 儲存庫建立、GitHub Pages 靜態網站發布與 Firebase Realtime Database 串接。
+
+---
+
+### 方式二：手動發布至 GitHub Pages（免費且只需 2 分鐘）
+1. 登入 [GitHub](https://github.com/)，點擊右上角 **New repository**，建立一個公開儲存庫（如命名為 `class-morning-helper`）。
+2. 在儲存庫頁面點擊 **uploading an existing file**，將本資料夾內的所有檔案（包含 `index.html` 等）拖曳上傳並點擊 **Commit changes**。
+3. 前往儲存庫的 **Settings** ➔ 側邊欄點選 **Pages**。
+4. 在 **Build and deployment** 下方的 **Branch** 選擇 `main`（或 `master`），資料夾保持 `/ (root)`，點擊 **Save**。
+5. 等待 1~2 分鐘後重新整理頁面，頂端即會顯示您的專屬網址：
+   `https://<您的帳號>.github.io/class-morning-helper/`
+   👉 **發給其他老師時，只要在網址後面加上班級代碼（例如 `?class=101`），該老師就能擁有完全獨立的專屬班級！**
 
 ---
 
