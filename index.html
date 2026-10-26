@@ -109,6 +109,8 @@
         <span>👑</span>
         <span>總管理後台</span>
       </button>
+
+
     </div>
 
     <!-- Center: Large Real-time Clock (Taiwan Time UTC+8) -->
@@ -1356,30 +1358,13 @@
         appState.daily[dateKey] = {
           checkins: {}, // seat: { time: "07:28", exempt: false }
           homework: {
-            text: "注音本 39~41\n數練 18 19\n國重 10 11\n帶美勞用具（水彩）\n發下通知單回條簽名",
+            text: "",
             hidden: false,
-            mode: "ruby", // "chinese" | "zhuyin" | "ruby"
-            format: "grid" // "grid" (一年級直行方格對照) | "list" (橫排)
+            mode: (appState.settings && appState.settings.notebookMode) || "ruby", // "chinese" | "zhuyin" | "ruby"
+            format: (appState.settings && appState.settings.notebookFormat) || "grid" // "grid" | "list"
           },
-          assignments: [
-            {
-              id: 'hw-default-1',
-              title: '國語甲本 L3',
-              mode: 'all',
-              targetSeats: [],
-              completedSeats: []
-            },
-            {
-              id: 'hw-default-2',
-              title: '數學習作第 4 單元',
-              mode: 'selected',
-              targetSeats: [3, 8, 14, 22],
-              completedSeats: [3]
-            }
-          ],
-          currentAssignmentId: 'hw-default-1'
+          assignments: []
         };
-        saveState();
       }
       return appState.daily[dateKey];
     }
@@ -1637,8 +1622,8 @@
       return BOPOMOFO_DICT[ch] || null;
     }
 
-    // Format Bopomofo vertically matching Image 1 and Image 2 (tone mark on the right of vowel)
-    function formatZhuyinVertical(zhuyin) {
+    // Format Bopomofo vertically matching MOE standards (2-column fixed alignment, 100% straight vertical line like textbooks)
+    function formatZhuyinVertical(zhuyin, isBig = false) {
       if (!zhuyin) return '';
       const tones = {'ˊ': 'ˊ', 'ˇ': 'ˇ', 'ˋ': 'ˋ', '˙': '˙'};
       let tone = '';
@@ -1648,31 +1633,91 @@
         if (tones[c]) {
           tone = c;
         } else {
-          symbols.append ? symbols.append(c) : symbols.push(c);
+          symbols.push(c);
         }
       }
       const isLight = (tone === '˙');
       const toneMark = isLight ? '' : tone;
 
-      let html = '<div class="zhuyin-vertical-stack flex flex-col items-center justify-center leading-none select-none">';
+      if (isBig) {
+        // Pure Zhuyin Mode in 66x64 square (純注音大字，大螢幕遠距離專用加粗)
+        let symSizeCls = 'text-2xl leading-none';
+        let toneSizeCls = 'text-xl leading-none';
+        let lightToneCls = 'text-base leading-none';
+        if (symbols.length <= 1) {
+          symSizeCls = 'text-3xl leading-none';
+          toneSizeCls = 'text-2xl leading-none';
+          lightToneCls = 'text-lg leading-none';
+        } else if (symbols.length === 2) {
+          symSizeCls = 'text-[22px] leading-[24px]';
+          toneSizeCls = 'text-xl leading-none';
+          lightToneCls = 'text-sm leading-none';
+        } else if (symbols.length >= 3) {
+          symSizeCls = 'text-[17px] leading-[19px]';
+          toneSizeCls = 'text-lg leading-none';
+          lightToneCls = 'text-xs leading-none';
+        }
+
+        const colWidth = 'w-[28px]';
+        const toneWidth = 'w-[14px]';
+
+        let html = '<div class="zhuyin-wrapper flex items-center justify-center select-none leading-none">';
+        html += '<div class="inline-flex items-center">';
+        html += `<div class="${colWidth} flex flex-col items-center justify-center leading-none">`;
+        if (isLight) {
+          html += `<span class="${lightToneCls} font-black text-slate-950 leading-none mb-0.5" style="-webkit-text-stroke: 0.6px currentColor;">˙</span>`;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+          html += `<span class="${symSizeCls} font-black text-slate-950 font-sans tracking-tight" style="-webkit-text-stroke: 0.5px currentColor;">${symbols[i]}</span>`;
+        }
+        html += '</div>';
+        html += `<div class="${toneWidth} flex flex-col justify-end items-start leading-none self-stretch">`;
+        if (toneMark) {
+          html += `<span class="${toneSizeCls} font-black text-slate-950 leading-none" style="transform: translateY(-2px); -webkit-text-stroke: 0.8px currentColor; font-weight: 900;">${toneMark}</span>`;
+        }
+        html += '</div>';
+        html += '</div></div>';
+        return html;
+      }
+
+      // Ruby Mode (國字+注音，右側獨立注音欄 26px x 64px)
+      // Fixed 15px symbol column ensures ALL characters align in a PERFECT VERTICAL STRAIGHT LINE (Like textbooks)
+      let symSizeCls = 'text-[13px] leading-[13.5px]';
+      let toneSizeCls = 'text-[12px] leading-none';
+      let lightToneCls = 'text-[10px] leading-none';
+      if (symbols.length <= 1) {
+        symSizeCls = 'text-[15px] leading-[15px]';
+        toneSizeCls = 'text-[13px] leading-none';
+        lightToneCls = 'text-[11px] leading-none';
+      } else if (symbols.length === 2) {
+        symSizeCls = 'text-[13px] leading-[13.5px]';
+        toneSizeCls = 'text-[12px] leading-none';
+        lightToneCls = 'text-[10px] leading-none';
+      } else if (symbols.length >= 3) {
+        symSizeCls = 'text-[11.5px] leading-[12px]';
+        toneSizeCls = 'text-[11px] leading-none';
+        lightToneCls = 'text-[9.5px] leading-none';
+      }
+
+      const colWidth = 'w-[15px]';
+      const toneWidth = 'w-[9px]';
+
+      let html = '<div class="zhuyin-wrapper flex items-center justify-center select-none leading-none">';
+      html += '<div class="inline-flex items-center">';
+      html += `<div class="${colWidth} flex flex-col items-center justify-center leading-none">`;
       if (isLight) {
-        html += '<span class="text-[9px] leading-none text-emerald-900 font-black">˙</span>';
+        html += `<span class="${lightToneCls} font-black text-emerald-950 leading-none mb-0.5" style="-webkit-text-stroke: 0.5px currentColor;">˙</span>`;
       }
       for (let i = 0; i < symbols.length; i++) {
-        const sym = symbols[i];
-        if (i === symbols.length - 1 && toneMark) {
-          // Final vowel: symbol + tone mark on the right
-          html += `
-            <div class="relative inline-flex items-center justify-center">
-              <span class="text-sm font-bold leading-none text-emerald-950 font-serif">${sym}</span>
-              <span class="absolute left-full top-0 text-[11px] leading-none text-emerald-800 font-black ml-0.5">${toneMark}</span>
-            </div>
-          `;
-        } else {
-          html += `<span class="text-sm font-bold leading-none text-emerald-950 font-serif">${sym}</span>`;
-        }
+        html += `<span class="${symSizeCls} font-black text-emerald-950 font-sans tracking-tight" style="-webkit-text-stroke: 0.35px currentColor;">${symbols[i]}</span>`;
       }
       html += '</div>';
+      html += `<div class="${toneWidth} flex flex-col justify-end items-start leading-none self-stretch">`;
+      if (toneMark) {
+        html += `<span class="${toneSizeCls} font-black text-emerald-950 leading-none" style="transform: translateY(-2px); -webkit-text-stroke: 0.7px currentColor; font-weight: 900;">${toneMark}</span>`;
+      }
+      html += '</div>';
+      html += '</div></div>';
       return html;
     }
 
@@ -1707,19 +1752,19 @@
       if (!token) return '';
       // Wave dash / hyphen (e.g. 39~41): rotate 90deg so wave connects top to bottom vertically
       if (token === '~' || token === '～' || token === '-') {
-        return `<span class="inline-block transform rotate-90 ${sizeClass} font-black text-slate-900 leading-none select-none">～</span>`;
+        return `<span class="inline-block transform rotate-90 ${sizeClass} font-black text-slate-950 leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">～</span>`;
       }
       // Brackets, parentheses, quotes, dashes -> Unicode Vertical Presentation Forms
       if (VERTICAL_PUNCT_MAP[token]) {
         const vChar = VERTICAL_PUNCT_MAP[token];
-        return `<span class="${sizeClass} font-black text-slate-900 font-serif leading-none select-none">${vChar}</span>`;
+        return `<span class="${sizeClass} font-black text-slate-950 font-serif leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">${vChar}</span>`;
       }
       // Numbers
       if (/^\d+$/.test(token)) {
-        return `<span class="text-xl font-black text-slate-900 font-mono leading-none select-none">${token}</span>`;
+        return `<span class="text-xl font-black text-slate-950 font-mono leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">${token}</span>`;
       }
       // Standard characters & centered punctuation (、 ， 。 ！ ？)
-      return `<span class="${sizeClass} font-black text-slate-900 font-serif leading-none select-none">${token}</span>`;
+      return `<span class="${sizeClass} font-black text-slate-950 font-serif leading-none select-none" style="-webkit-text-stroke: 0.4px currentColor;">${token}</span>`;
     }
 
     // Helper for margin vertical characters with right-side vertical zhuyin (日期欄與作業未完成欄)
@@ -1727,7 +1772,7 @@
       return `
         <div class="inline-flex items-center justify-center leading-none my-0.5 select-none">
           <span class="${charClass} font-black text-[#1a422d] font-serif">${ch}</span>
-          <div class="ml-0.5 transform scale-75 origin-left">${formatZhuyinVertical(zy)}</div>
+          <div class="ml-0.5 transform scale-75 origin-left">${formatZhuyinVertical(zy, false)}</div>
         </div>
       `;
     }
@@ -1879,11 +1924,11 @@
 
           if (isRubyMode) {
             // === 圖二規格：國字加注音複合方格 ===
-            // 左側 52px 國字格（含田字十字虛線） + 右側 24px 獨立直式注音欄
+            // 左側 50px 國字格（含田字十字虛線） + 右側 26px 獨立直式注音欄 (防止超出格子)
             gridHtml += `
-              <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 flex items-stretch">
+              <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 flex items-stretch overflow-hidden">
                 <!-- 左側：國字方格 (田字十字虛線，標點符號自動轉直式) -->
-                <div class="w-[52px] h-full border-r border-[#2f664a] relative flex items-center justify-center overflow-hidden">
+                <div class="w-[50px] h-full border-r border-[#2f664a] relative flex items-center justify-center overflow-hidden shrink-0">
                   <!-- 十字田字格指導虛線 -->
                   <div class="absolute inset-x-0 top-1/2 border-b border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
                   <div class="absolute inset-y-0 left-1/2 border-r border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
@@ -1891,22 +1936,18 @@
                     ${token ? renderVerticalTokenDisplay(token, 'text-2xl') : ''}
                   </div>
                 </div>
-                <!-- 右側：獨立直式注音欄 (如圖二) -->
-                <div class="w-[24px] h-full relative flex items-center justify-center bg-[#fafdfb] px-0.5">
-                  ${zhuyin ? formatZhuyinVertical(zhuyin) : ''}
+                <!-- 右側：獨立直式注音欄 (安全寬度 26px，自適應字級與聲調，絕不溢出) -->
+                <div class="w-[26px] h-full relative flex items-center justify-center bg-[#fafdfb] px-0.5 overflow-hidden shrink-0">
+                  ${zhuyin ? formatZhuyinVertical(zhuyin, false) : ''}
                 </div>
               </div>
             `;
           } else if (isZhuyinMode) {
-            // === 圖一規格：純注音直式十字田字格 ===
-            // 全格正方形田字十字格，注音符號直排居中，聲調在韻母右側，標點符號轉直式
+            // === 純注音模式：純注音直排置中，大方格無中間田字虛線 ===
             gridHtml += `
               <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
-                <!-- 十字田字格指導虛線 (橫虛線 + 直虛線) -->
-                <div class="absolute inset-x-0 top-1/2 border-b border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
-                <div class="absolute inset-y-0 left-1/2 border-r border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
-                <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5">
-                  ${zhuyin ? formatZhuyinVertical(zhuyin) : (token ? renderVerticalTokenDisplay(token, 'text-2xl') : '')}
+                <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5 overflow-hidden">
+                  ${zhuyin ? formatZhuyinVertical(zhuyin, true) : (token ? renderVerticalTokenDisplay(token, 'text-2xl') : '')}
                 </div>
               </div>
             `;
@@ -2145,11 +2186,36 @@
     }
 
     // RENDER COLUMN 2: NOTEBOOK
+    function setNotebookMode(mode) {
+      const targetDate = currentStudentViewDate || getTodayKey();
+      const daily = getDailyData(targetDate);
+      if (!daily.homework) daily.homework = {};
+      daily.homework.mode = mode;
+      if (!appState.settings) appState.settings = {};
+      appState.settings.notebookMode = mode;
+      saveState();
+      renderNotebook();
+      showToast(mode === 'chinese' ? '已切換為純國字模式' : (mode === 'zhuyin' ? '已切換為純注音模式' : '已切換為國字＋注音對照'), '🔤');
+    }
+
+    function setNotebookFormat(fmt) {
+      const targetDate = currentStudentViewDate || getTodayKey();
+      const daily = getDailyData(targetDate);
+      if (!daily.homework) daily.homework = {};
+      daily.homework.format = fmt;
+      if (!appState.settings) appState.settings = {};
+      appState.settings.notebookFormat = fmt;
+      saveState();
+      renderNotebook();
+      showToast(fmt === 'grid' ? '已切換為一年級實體聯絡簿方格對照！' : '已切換為橫排大字清單模式', '📓');
+    }
+
     function renderNotebook() {
-      const daily = getDailyData(currentStudentViewDate);
+      const targetDate = currentStudentViewDate || getTodayKey();
+      const daily = getDailyData(targetDate);
       const notebook = daily.homework || {};
-      const mode = notebook.mode || 'ruby';
-      const fmt = notebook.format || 'grid';
+      const mode = notebook.mode || (appState.settings && appState.settings.notebookMode) || 'ruby';
+      const fmt = notebook.format || (appState.settings && appState.settings.notebookFormat) || 'grid';
       const isHidden = !!notebook.hidden;
 
       // Update Date Badge & Title for current viewing date
@@ -3070,44 +3136,29 @@
 
       // Format Switchers: 方格對照 vs 條列模式
       document.getElementById('btn-fmt-grid').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.format = 'grid';
-        saveState();
-        renderNotebook();
-        showToast('已切換為一年級實體聯絡簿方格對照！', '📓');
+        setNotebookFormat('grid');
       });
       document.getElementById('btn-fmt-list').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.format = 'list';
-        saveState();
-        renderNotebook();
-        showToast('已切換為橫排大字清單模式', '📄');
+        setNotebookFormat('list');
       });
 
-      // Notebook Modes
+      // Notebook Modes: 國字 / 注音 / 國字+注音 (適用於當前查看的任何日期)
       document.getElementById('btn-mode-chinese').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.mode = 'chinese';
-        saveState();
-        renderNotebook();
+        setNotebookMode('chinese');
       });
       document.getElementById('btn-mode-zhuyin').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.mode = 'zhuyin';
-        saveState();
-        renderNotebook();
+        setNotebookMode('zhuyin');
       });
       document.getElementById('btn-mode-ruby').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.mode = 'ruby';
-        saveState();
-        renderNotebook();
+        setNotebookMode('ruby');
       });
 
       // Notebook Show/Hide Toggle
       document.getElementById('btn-toggle-mask').addEventListener('click', () => {
-        const daily = getDailyData();
-        if (daily.homework) daily.homework.hidden = !daily.homework.hidden;
+        const targetDate = currentStudentViewDate || getTodayKey();
+        const daily = getDailyData(targetDate);
+        if (!daily.homework) daily.homework = {};
+        daily.homework.hidden = !daily.homework.hidden;
         saveState();
         renderNotebook();
         showToast(daily.homework.hidden ? '聯絡簿已遮蔽 🙈' : '聯絡簿已揭曉 👁️', '📖');
