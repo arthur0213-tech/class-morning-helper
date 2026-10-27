@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>班級早修小幫手 - 大腦總部控制台</title>
+  <title>【測試隔離版】班級早修小幫手 - 測試控制台</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
@@ -110,7 +110,11 @@
         <span>總管理後台</span>
       </button>
 
-
+      <!-- Test Sandbox Indicator Badge -->
+      <span class="hidden md:inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/50 text-xs font-black shadow-sm" title="此為獨立測試環境，所有操作絕不影響正式版！">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        <span>🧪 獨立測試模式（不影響正式環境）</span>
+      </span>
     </div>
 
     <!-- Center: Large Real-time Clock (Taiwan Time UTC+8) -->
@@ -157,69 +161,75 @@
   </header>
 
   <!-- MAIN THREE-COLUMN CONTAINER (Responsive for 75" Large Display) -->
-  <main class="flex-1 p-4 grid grid-cols-12 gap-4 overflow-hidden">
+  <main class="flex-1 p-3 grid grid-cols-12 gap-3 overflow-hidden">
 
-    <!-- LEFT COLUMN: 到校打卡 (col-span-3 or 4) -->
-    <section class="col-span-3 flex flex-col bg-slate-900/70 border border-slate-800/80 rounded-3xl p-3.5 shadow-2xl relative overflow-hidden">
+    <!-- LEFT COLUMN: 到校打卡 (縮小為 col-span-2，釋放更多空間給中間聯絡簿) -->
+    <section class="col-span-2 flex flex-col bg-slate-900/70 border border-slate-800/80 rounded-2xl p-2.5 shadow-2xl relative overflow-hidden">
       <!-- Decorative Emotion Orb Glow -->
       <div class="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
       <!-- Header: Title & Statistics -->
-      <div class="shrink-0 mb-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <div class="flex items-center space-x-2">
-            <span class="text-2xl">🌞</span>
+      <div class="shrink-0 mb-2">
+        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xl">🌞</span>
             <div>
-              <h2 class="text-lg font-black text-amber-300 tracking-wide">到校打卡</h2>
-              <p class="text-[11px] text-slate-400">點選座號完成打卡</p>
+              <h2 class="text-base font-black text-amber-300 tracking-wide leading-tight">到校打卡</h2>
+              <p class="text-[10px] text-slate-400">點選座號完成打卡</p>
             </div>
           </div>
-          <!-- Cutoff pill indicator -->
-          <div id="checkin-cutoff-pill" class="text-xs px-2.5 py-1 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
-            進行中
+          <!-- Cutoff pill indicator & quick history button -->
+          <div class="flex items-center space-x-1">
+            <button id="btn-quick-checkin-history" class="text-[10px] px-2 py-0.5 rounded-lg font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-sky-200 border border-slate-700 transition active:scale-95 flex items-center space-x-0.5 shadow" title="查看與更正過往歷史打卡紀錄">
+              <span>📅</span>
+              <span>歷史</span>
+            </button>
+            <div id="checkin-cutoff-pill" class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
+              進行中
+            </div>
           </div>
         </div>
 
         <!-- Attendance Stats Counters -->
-        <div class="grid grid-cols-4 gap-1.5 mt-2.5 text-center">
-          <div class="bg-slate-800/70 p-1.5 rounded-xl border border-slate-700/60">
-            <div class="text-[10px] text-slate-400 font-medium">應到</div>
-            <div id="stat-total" class="text-base font-black text-slate-200">28</div>
+        <div class="grid grid-cols-4 gap-1 mt-2 text-center">
+          <div class="bg-slate-800/70 p-1 rounded-lg border border-slate-700/60">
+            <div class="text-[9px] text-slate-400 font-medium">應到</div>
+            <div id="stat-total" class="text-sm font-black text-slate-200">28</div>
           </div>
-          <div class="bg-amber-500/10 p-1.5 rounded-xl border border-amber-500/30">
-            <div class="text-[10px] text-amber-300 font-medium">已到</div>
-            <div id="stat-arrived" class="text-base font-black text-amber-400">0</div>
+          <div class="bg-amber-500/10 p-1 rounded-lg border border-amber-500/30">
+            <div class="text-[9px] text-amber-300 font-medium">已到</div>
+            <div id="stat-arrived" class="text-sm font-black text-amber-400">0</div>
           </div>
-          <div class="bg-rose-500/10 p-1.5 rounded-xl border border-rose-500/30">
-            <div class="text-[10px] text-rose-300 font-medium">未到</div>
-            <div id="stat-missing" class="text-base font-black text-rose-400">28</div>
+          <div class="bg-rose-500/10 p-1 rounded-lg border border-rose-500/30">
+            <div class="text-[9px] text-rose-300 font-medium">未到</div>
+            <div id="stat-missing" class="text-sm font-black text-rose-400">28</div>
           </div>
-          <div class="bg-purple-500/10 p-1.5 rounded-xl border border-purple-500/30">
-            <div class="text-[10px] text-purple-300 font-medium">免打卡</div>
-            <div id="stat-exempt" class="text-base font-black text-purple-300">0</div>
+          <div class="bg-purple-500/10 p-1 rounded-lg border border-purple-500/30">
+            <div class="text-[9px] text-purple-300 font-medium">免打卡</div>
+            <div id="stat-exempt" class="text-sm font-black text-purple-300">0</div>
           </div>
         </div>
       </div>
 
       <!-- Notification / Tip Area (Pushes seat numbers down) -->
-      <div class="text-[11px] text-slate-400/90 bg-slate-950/40 px-3 py-1.5 rounded-xl mb-2 flex items-center justify-between border border-slate-800/60 shrink-0">
-        <span>💡 提醒：到校請先點選座號</span>
-        <span class="text-amber-400/80 font-mono text-[10px]" id="checkin-rule-hint">預設 08:05 截止</span>
+      <div class="text-[10px] text-slate-400/90 bg-slate-950/40 px-2 py-1 rounded-lg mb-2 flex items-center justify-between border border-slate-800/60 shrink-0">
+        <span>💡 提醒：請點座號打卡</span>
+        <span class="text-amber-400/80 font-mono text-[9px]" id="checkin-rule-hint">08:05 截止</span>
       </div>
 
       <!-- SEAT NUMBER GRID: Positioned Towards Bottom for Elementary Touch (左右座號區靠下) -->
       <div class="flex-1 flex flex-col justify-end overflow-hidden">
-        <div class="overflow-y-auto pr-1">
+        <div class="overflow-y-auto pr-0.5">
           <!-- 3 seats per row grid: grid-cols-3 -->
-          <div id="checkin-grid" class="grid grid-cols-3 gap-2">
+          <div id="checkin-grid" class="grid grid-cols-3 gap-1.5">
             <!-- Dynamic Seat Buttons -->
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CENTER COLUMN: 聯絡簿 (col-span-6, Takes larger space) -->
-    <section class="col-span-6 flex flex-col bg-slate-900/80 border border-slate-800 rounded-3xl p-4 shadow-2xl relative overflow-hidden">
+    <!-- CENTER COLUMN: 聯絡簿 (放大擴充為 col-span-8，佔據三分之二視覺超大空間) -->
+    <section class="col-span-8 flex flex-col bg-slate-900/80 border border-slate-800 rounded-2xl p-3 shadow-2xl relative overflow-hidden">
       <!-- Decorative Glow -->
       <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-80 h-32 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -298,11 +308,11 @@
         </div>
       </div>
 
-      <!-- Main Notebook Body: Scaled Proportionally, No Clipping, No Flickering -->
-      <div id="notebook-scroll-wrapper" class="flex-1 my-3 bg-slate-950/60 rounded-2xl p-4 border border-slate-800/80 overflow-auto relative flex flex-col justify-between">
+      <!-- Main Notebook Body: Scaled Proportionally, No Clipping, Full Middle Area Dedicated to Notebook -->
+      <div id="notebook-scroll-wrapper" class="flex-1 my-3 bg-slate-950/60 rounded-2xl p-4 border border-slate-800/80 overflow-auto relative flex flex-col">
 
         <!-- Active Visible Content -->
-        <div id="notebook-content-container" class="space-y-4 origin-top transition-transform duration-100">
+        <div id="notebook-content-container" class="space-y-4 origin-top transition-transform duration-100 flex-1 flex flex-col justify-center">
           <!-- Dynamic lines rendered here -->
         </div>
 
@@ -319,36 +329,6 @@
           </div>
         </div>
 
-        <!-- Bottom Feature: Daily Brain Teaser Riddle (腦筋急轉彎) -->
-        <div id="riddle-container-box" class="mt-3 pt-2.5 border-t border-slate-800/80 shrink-0">
-          <div class="bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 p-3 rounded-2xl border border-slate-800 flex items-center justify-between">
-            <div class="flex items-start space-x-3 flex-1 pr-3">
-              <span class="text-2xl shrink-0">💡</span>
-              <div class="flex-1">
-                <div class="flex items-center space-x-2">
-                  <span class="text-xs font-black text-amber-300 tracking-wider">今日大腦急轉彎</span>
-                  <span class="text-[10px] text-slate-400">大腦開機趣味題</span>
-                  <button id="btn-toggle-riddle-fold" class="text-[10px] text-slate-400 hover:text-amber-300 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700/60 ml-2 transition" title="收合或展開急轉彎，釋放更多聯絡簿空間">
-                    收合
-                  </button>
-                </div>
-                <div id="riddle-content-wrapper">
-                  <p id="riddle-question" class="text-sm text-slate-200 font-bold mt-0.5">什麼東西越洗越髒？</p>
-                  <p id="riddle-answer" class="text-xs text-emerald-400 font-black mt-1 hidden">【謎底】：水！因為洗了髒東西，水就變髒啦～</p>
-                </div>
-              </div>
-            </div>
-            <div id="riddle-buttons-wrapper" class="flex flex-col space-y-1.5 shrink-0">
-              <button id="btn-reveal-riddle" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition active:scale-95 shadow">
-                看謎底
-              </button>
-              <button id="btn-next-riddle" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold transition active:scale-95">
-                換一題
-              </button>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- Notebook Footer / Quick Teacher Notice -->
@@ -358,56 +338,56 @@
       </div>
     </section>
 
-    <!-- RIGHT COLUMN: 需補繳作業 (col-span-3 or 4) -->
-    <section class="col-span-3 flex flex-col bg-slate-900/70 border border-slate-800/80 rounded-3xl p-3.5 shadow-2xl relative overflow-hidden">
+    <!-- RIGHT COLUMN: 需補繳作業 (縮小為 col-span-2，釋放更多空間給中間聯絡簿) -->
+    <section class="col-span-2 flex flex-col bg-slate-900/70 border border-slate-800/80 rounded-2xl p-2.5 shadow-2xl relative overflow-hidden">
       <!-- Decorative Emotion Orb Glow -->
       <div class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
       <!-- Header: Title & Assignment Selector -->
-      <div class="shrink-0 mb-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-          <div class="flex items-center space-x-2">
-            <span class="text-2xl">📝</span>
+      <div class="shrink-0 mb-2">
+        <div class="flex items-center justify-between pb-1.5 border-b border-slate-800">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xl">📝</span>
             <div>
-              <h2 class="text-lg font-black text-emerald-300 tracking-wide">需補繳作業</h2>
-              <p class="text-[11px] text-slate-400">點選座號確認繳交</p>
+              <h2 class="text-base font-black text-emerald-300 tracking-wide leading-tight">需補繳作業</h2>
+              <p class="text-[10px] text-slate-400">點選座號確認繳交</p>
             </div>
           </div>
           <!-- Assignment Mode Tag -->
-          <div id="hw-mode-badge" class="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <div id="hw-mode-badge" class="text-[11px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
             全班補繳
           </div>
         </div>
 
         <!-- Assignment Selection Tabs (If teacher has multiple tasks) -->
-        <div class="mt-2.5 flex items-center space-x-1.5 overflow-x-auto pb-1" id="hw-tabs-container">
+        <div class="mt-2 flex items-center space-x-1 overflow-x-auto pb-1" id="hw-tabs-container">
           <!-- Dynamic Assignment Tabs -->
         </div>
 
         <!-- Progress Bar & Count -->
-        <div class="mt-2 bg-slate-800/80 p-2 rounded-xl border border-slate-700/60">
-          <div class="flex items-center justify-between text-xs mb-1.5">
-            <span id="hw-current-title" class="font-bold text-slate-200 truncate max-w-[140px]">國語甲本 L3</span>
-            <span id="hw-progress-text" class="text-emerald-400 font-mono font-bold">0 / 28 人完成</span>
+        <div class="mt-1.5 bg-slate-800/80 p-1.5 rounded-lg border border-slate-700/60">
+          <div class="flex items-center justify-between text-[11px] mb-1">
+            <span id="hw-current-title" class="font-bold text-slate-200 truncate max-w-[120px]">國語甲本 L3</span>
+            <span id="hw-progress-text" class="text-emerald-400 font-mono font-bold">0/28 人</span>
           </div>
           <!-- Visual Progress Track -->
-          <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-700/50">
+          <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-700/50">
             <div id="hw-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
       </div>
 
       <!-- Notification / Tip Area (Pushes seat numbers down) -->
-      <div class="text-[11px] text-slate-400/90 bg-slate-950/40 px-3 py-1.5 rounded-xl mb-2 flex items-center justify-between border border-slate-800/60 shrink-0">
-        <span>✅ 繳交後點選座號確認</span>
-        <span class="text-emerald-400 text-[10px] font-bold">點選後顯示 ✓</span>
+      <div class="text-[10px] text-slate-400/90 bg-slate-950/40 px-2 py-1 rounded-lg mb-2 flex items-center justify-between border border-slate-800/60 shrink-0">
+        <span>✅ 繳交後點座號確認</span>
+        <span class="text-emerald-400 text-[9px] font-bold">顯示 ✓</span>
       </div>
 
       <!-- SEAT NUMBER GRID: Positioned Towards Bottom for Elementary Touch (左右座號區靠下) -->
       <div class="flex-1 flex flex-col justify-end overflow-hidden">
-        <div class="overflow-y-auto pr-1">
+        <div class="overflow-y-auto pr-0.5">
           <!-- 3 seats per row grid: grid-cols-3 -->
-          <div id="homework-grid" class="grid grid-cols-3 gap-2">
+          <div id="homework-grid" class="grid grid-cols-3 gap-1.5">
             <!-- Dynamic Seat Buttons -->
           </div>
         </div>
@@ -470,7 +450,7 @@
           📖 聯絡簿管理 (支援多日)
         </button>
         <button id="tab-btn-checkin" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200">
-          📋 到校打卡與誤觸更正
+          📅 歷史打卡與更正
         </button>
         <button id="tab-btn-homework" class="px-4 py-2 text-xs font-bold rounded-t-xl transition border-b-2 border-transparent text-slate-400 hover:text-slate-200">
           📝 補繳作業設定
@@ -516,7 +496,7 @@
 
               <div>
                 <label class="block text-xs font-bold text-slate-300 mb-1">排除的座號 (逗號分隔)</label>
-                <input type="text" id="setting-excluded-seats" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="例如：4, 18 (轉出或空號)">
+                <input type="text" id="setting-excluded-seats" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="無空號請留空 (若無此座號才填，如：4, 18)">
               </div>
             </div>
 
@@ -652,25 +632,53 @@
           </div>
         </div>
 
-        <!-- TAB 3: 到校打卡與誤觸更正 -->
+        <!-- TAB 3: 歷史打卡紀錄與更正 (可查過往任意日期) -->
         <div id="tab-content-checkin" class="hidden space-y-5">
           <div class="bg-slate-950/50 p-5 rounded-2xl border border-slate-800 space-y-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between flex-wrap gap-2">
               <h4 class="text-sm font-black text-amber-300 flex items-center space-x-2">
                 <span>📋</span>
-                <span>打卡紀錄檢視、免打卡設定與誤觸更正</span>
+                <span>歷史打卡紀錄檢視、統計與誤觸更正</span>
               </h4>
-              <!-- Date Selector for Attendance -->
-              <div class="flex items-center space-x-2">
-                <label class="text-xs text-slate-400 font-bold">日期：</label>
+              <!-- Date Selector with Prev / Next / Today Buttons -->
+              <div class="flex items-center space-x-1.5">
+                <button id="btn-admin-checkin-prev" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition active:scale-95" title="前一天">◀</button>
                 <input type="date" id="admin-checkin-date" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
+                <span id="admin-checkin-weekday-badge" class="text-xs px-2 py-1 rounded-lg bg-sky-500/20 text-sky-300 font-bold border border-sky-500/30">週五</span>
+                <button id="btn-admin-checkin-next" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition active:scale-95" title="後一天">▶</button>
+                <button id="btn-admin-checkin-today" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold border border-amber-500/40 transition active:scale-95" title="回到今天">今天</button>
+              </div>
+            </div>
+
+            <!-- Attendance Summary Stats Bar -->
+            <div id="admin-checkin-summary-bar" class="grid grid-cols-5 gap-2 bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-center">
+              <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
+                <span class="text-[10px] text-slate-400 block font-medium">應到人數</span>
+                <span id="admin-stat-total" class="text-base font-black text-slate-200">0</span>
+              </div>
+              <div class="bg-amber-500/10 p-2 rounded-lg border border-amber-500/30">
+                <span class="text-[10px] text-amber-300 block font-medium">☀️ 準時到校</span>
+                <span id="admin-stat-ontime" class="text-base font-black text-amber-400">0</span>
+              </div>
+              <div class="bg-rose-500/10 p-2 rounded-lg border border-rose-500/30">
+                <span class="text-[10px] text-rose-300 block font-medium">⏰ 遲到打卡</span>
+                <span id="admin-stat-late" class="text-base font-black text-rose-400">0</span>
+              </div>
+              <div class="bg-slate-800/40 p-2 rounded-lg border border-slate-700/40">
+                <span class="text-[10px] text-slate-400 block font-medium">⏳ 尚未打卡</span>
+                <span id="admin-stat-missing" class="text-base font-black text-slate-400">0</span>
+              </div>
+              <div class="bg-purple-500/10 p-2 rounded-lg border border-purple-500/30">
+                <span class="text-[10px] text-purple-300 block font-medium">💜 請假/免打卡</span>
+                <span id="admin-stat-exempt" class="text-base font-black text-purple-300">0</span>
               </div>
             </div>
 
             <p class="text-xs text-slate-400">
               💡 點擊下方座號可循環更正狀態：
-              <span class="text-rose-400 font-bold">未到</span> → 
-              <span class="text-amber-400 font-bold">已到 (設定時間)</span> → 
+              <span class="text-slate-400 font-bold">未到</span> → 
+              <span class="text-amber-400 font-bold">準時到校</span> → 
+              <span class="text-rose-400 font-bold">遲到打卡</span> → 
               <span class="text-purple-400 font-bold">免打卡 (請假/公假)</span>
             </p>
 
@@ -682,10 +690,10 @@
             <!-- Quick Action: Copy for LINE class group -->
             <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
               <div class="text-xs text-slate-400">
-                可將今日出席狀況一鍵複製，直接傳送至班級家長通訊群組。
+                可將所選日期的出席狀況一鍵複製，直接傳送至班級家長通訊群組。
               </div>
               <button id="btn-copy-attendance-report" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-slate-700 transition active:scale-95">
-                📋 一鍵複製今日打卡通報 (LINE)
+                📋 一鍵複製該日打卡通報 (LINE)
               </button>
             </div>
           </div>
@@ -1002,7 +1010,7 @@
         teacher: '林老師',
         startSeat: 1,
         endSeat: 28,
-        excludedSeats: [4, 18],
+        excludedSeats: [],
         cutoffTime: '08:05',
         password: '8888',
         createdAt: '2026-10-23'
@@ -1014,7 +1022,7 @@
         className: '三年二班',
         startSeat: 1,
         endSeat: 28,
-        excludedSeats: [4, 18],
+        excludedSeats: [],
         cutoffTime: '08:05',
         password: '8888',
         sound: true
@@ -1123,7 +1131,7 @@
           className: reg.name || '三年二班',
           startSeat: reg.startSeat || 1,
           endSeat: reg.endSeat || 28,
-          excludedSeats: reg.excludedSeats || [4, 18],
+          excludedSeats: reg.excludedSeats || [],
           password: reg.password || '8888'
         },
         daily: {}
@@ -1640,26 +1648,26 @@
       const toneMark = isLight ? '' : tone;
 
       if (isBig) {
-        // Pure Zhuyin Mode in 66x64 square (純注音大字，大螢幕遠距離專用加粗)
-        let symSizeCls = 'text-2xl leading-none';
-        let toneSizeCls = 'text-xl leading-none';
-        let lightToneCls = 'text-base leading-none';
+        // Pure Zhuyin Mode in 96x88 square (純注音大字，大螢幕遠距離專用極致放大)
+        let symSizeCls = 'text-4xl leading-none';
+        let toneSizeCls = 'text-3xl leading-none';
+        let lightToneCls = 'text-2xl leading-none';
         if (symbols.length <= 1) {
-          symSizeCls = 'text-3xl leading-none';
-          toneSizeCls = 'text-2xl leading-none';
-          lightToneCls = 'text-lg leading-none';
+          symSizeCls = 'text-6xl leading-none';
+          toneSizeCls = 'text-4xl leading-none';
+          lightToneCls = 'text-3xl leading-none';
         } else if (symbols.length === 2) {
-          symSizeCls = 'text-[22px] leading-[24px]';
-          toneSizeCls = 'text-xl leading-none';
-          lightToneCls = 'text-sm leading-none';
+          symSizeCls = 'text-[36px] leading-[38px]';
+          toneSizeCls = 'text-3xl leading-none';
+          lightToneCls = 'text-xl leading-none';
         } else if (symbols.length >= 3) {
-          symSizeCls = 'text-[17px] leading-[19px]';
-          toneSizeCls = 'text-lg leading-none';
-          lightToneCls = 'text-xs leading-none';
+          symSizeCls = 'text-[26px] leading-[28px]';
+          toneSizeCls = 'text-2xl leading-none';
+          lightToneCls = 'text-base leading-none';
         }
 
-        const colWidth = 'w-[28px]';
-        const toneWidth = 'w-[14px]';
+        const colWidth = 'w-[44px]';
+        const toneWidth = 'w-[20px]';
 
         let html = '<div class="zhuyin-wrapper flex items-center justify-center select-none leading-none">';
         html += '<div class="inline-flex items-center">';
@@ -1680,27 +1688,27 @@
         return html;
       }
 
-      // Ruby Mode (國字+注音，右側獨立注音欄 26px x 64px)
-      // Fixed 15px symbol column ensures ALL characters align in a PERFECT VERTICAL STRAIGHT LINE (Like textbooks)
-      let symSizeCls = 'text-[13px] leading-[13.5px]';
-      let toneSizeCls = 'text-[12px] leading-none';
-      let lightToneCls = 'text-[10px] leading-none';
+      // Ruby Mode (國字+注音，右側獨立注音欄 36px x 88px)
+      // Fixed 22px symbol column ensures ALL characters align in a PERFECT VERTICAL STRAIGHT LINE (Like textbooks)
+      let symSizeCls = 'text-[18px] leading-[19px]';
+      let toneSizeCls = 'text-[16px] leading-none';
+      let lightToneCls = 'text-[14px] leading-none';
       if (symbols.length <= 1) {
-        symSizeCls = 'text-[15px] leading-[15px]';
-        toneSizeCls = 'text-[13px] leading-none';
-        lightToneCls = 'text-[11px] leading-none';
+        symSizeCls = 'text-[22px] leading-[23px]';
+        toneSizeCls = 'text-[18px] leading-none';
+        lightToneCls = 'text-[15px] leading-none';
       } else if (symbols.length === 2) {
-        symSizeCls = 'text-[13px] leading-[13.5px]';
-        toneSizeCls = 'text-[12px] leading-none';
-        lightToneCls = 'text-[10px] leading-none';
+        symSizeCls = 'text-[18px] leading-[19px]';
+        toneSizeCls = 'text-[16px] leading-none';
+        lightToneCls = 'text-[14px] leading-none';
       } else if (symbols.length >= 3) {
-        symSizeCls = 'text-[11.5px] leading-[12px]';
-        toneSizeCls = 'text-[11px] leading-none';
-        lightToneCls = 'text-[9.5px] leading-none';
+        symSizeCls = 'text-[15.5px] leading-[16.5px]';
+        toneSizeCls = 'text-[15px] leading-none';
+        lightToneCls = 'text-[12px] leading-none';
       }
 
-      const colWidth = 'w-[15px]';
-      const toneWidth = 'w-[9px]';
+      const colWidth = 'w-[22px]';
+      const toneWidth = 'w-[13px]';
 
       let html = '<div class="zhuyin-wrapper flex items-center justify-center select-none leading-none">';
       html += '<div class="inline-flex items-center">';
@@ -1748,37 +1756,51 @@
     ]);
 
     // Render token with proper vertical punctuation orientation
-    function renderVerticalTokenDisplay(token, sizeClass = 'text-2xl') {
+    // 使用者指示：1. 文字放大  2. 國字不加粗（避免筆畫連在一起）  3. 單元/課別代號（如 U5, L3, CH2, ㄓ5, ㄓ）容納在單一格子
+    function renderVerticalTokenDisplay(token, sizeClass = 'text-[32px]') {
       if (!token) return '';
       // Wave dash / hyphen (e.g. 39~41): rotate 90deg so wave connects top to bottom vertically
       if (token === '~' || token === '～' || token === '-') {
-        return `<span class="inline-block transform rotate-90 ${sizeClass} font-black text-slate-950 leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">～</span>`;
+        return `<span class="inline-block transform rotate-90 ${sizeClass} font-bold text-slate-900 leading-none select-none">～</span>`;
       }
       // Brackets, parentheses, quotes, dashes -> Unicode Vertical Presentation Forms
       if (VERTICAL_PUNCT_MAP[token]) {
         const vChar = VERTICAL_PUNCT_MAP[token];
-        return `<span class="${sizeClass} font-black text-slate-950 font-serif leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">${vChar}</span>`;
+        return `<span class="${sizeClass} font-bold text-slate-900 leading-none select-none">${vChar}</span>`;
       }
-      // Numbers
+      // Numbers (例如頁碼 39、41)
       if (/^\d+$/.test(token)) {
-        return `<span class="text-xl font-black text-slate-950 font-mono leading-none select-none" style="-webkit-text-stroke: 0.5px currentColor;">${token}</span>`;
+        return `<span class="text-3xl font-bold text-slate-900 font-mono leading-none select-none">${token}</span>`;
       }
-      // Standard characters & centered punctuation (、 ， 。 ！ ？)
-      return `<span class="${sizeClass} font-black text-slate-950 font-serif leading-none select-none" style="-webkit-text-stroke: 0.4px currentColor;">${token}</span>`;
+      // Unit/Lesson codes (例如 U5, L3, CH2, ㄓ5, P18 等單元/課次代號，固定容納於單一格子內)
+      if (/^([A-Za-z]{1,4}|[ㄅ-ㄩ])\d+$/i.test(token) || /^[A-Za-z]{2,4}$/.test(token)) {
+        let uSize = 'text-3xl';
+        if (token.length >= 4) uSize = 'text-xl';
+        else if (token.length === 3) uSize = 'text-2xl';
+        return `<span class="${uSize} font-bold text-slate-900 font-mono leading-none select-none tracking-tight">${token}</span>`;
+      }
+      // Single Bopomofo lesson/phonics symbol (例如：ㄓ、ㄅ、ㄆ 等首冊課次或注音作業)
+      if (/^[ㄅ-ㄩ]$/.test(token)) {
+        return `<span class="${sizeClass} font-bold text-slate-950 font-sans leading-none select-none">${token}</span>`;
+      }
+      // Standard Chinese characters & centered punctuation (、 ， 。 ！ ？)
+      // 依使用者需求：國字保持 font-medium / font-normal，不加 text-stroke，使筆畫清晰舒展不相黏
+      return `<span class="${sizeClass} font-medium text-slate-950 leading-none select-none">${token}</span>`;
     }
 
     // Helper for margin vertical characters with right-side vertical zhuyin (日期欄與作業未完成欄)
-    function renderMarginChar(ch, zy, charClass = 'text-xs') {
+    function renderMarginChar(ch, zy, charClass = 'text-sm') {
       return `
         <div class="inline-flex items-center justify-center leading-none my-0.5 select-none">
-          <span class="${charClass} font-black text-[#1a422d] font-serif">${ch}</span>
-          <div class="ml-0.5 transform scale-75 origin-left">${formatZhuyinVertical(zy, false)}</div>
+          <span class="${charClass} font-medium text-[#1a422d]">${ch}</span>
+          <div class="ml-0.5 transform scale-90 origin-left">${formatZhuyinVertical(zy, false)}</div>
         </div>
       `;
     }
 
     // Tokenize homework line into boxes for 1st-grade vertical grid
     // Supports inline custom zhuyin like "重(ㄓㄨㄥˋ)" or "重（ㄓㄨㄥˋ）"
+    // 自動識別 U5、L3、CH2、ㄓ5 等課別/單元標記，保持在單一寫字格中不被截斷
     function tokenizeLineForGrid(line, customMap = {}) {
       line = line.replace(/^\s*(\d+[\.、\s]|\(\d+\)\s*)/, '').trim();
       const tokens = [];
@@ -1789,27 +1811,54 @@
           i++;
           continue;
         }
-        // Match numbers like 39, 18, 41 (occupy one box)
+
+        const rest = line.slice(i);
+
+        // 1. Match Unit/Lesson abbreviations + numbers in ONE box (e.g. U5, U 5, L3, L 3, CH2, P18, p.18, ㄓ5, No.1)
+        const mUnit = rest.match(/^([A-Za-z]{1,4}|[ㄅ-ㄩ])\s*[-._]?\s*(\d+)/);
+        if (mUnit) {
+          const pfx = /^[A-Za-z]+$/.test(mUnit[1]) ? mUnit[1].toUpperCase() : mUnit[1];
+          const num = mUnit[2];
+          tokens.push({ text: pfx + num, isUnit: true });
+          i += mUnit[0].length;
+          continue;
+        }
+
+        // 2. Match standalone numbers like 39, 18, 41 (occupy one box)
         if (/\d/.test(ch)) {
-          const m = line.slice(i).match(/^\d+/);
+          const m = rest.match(/^\d+/);
           tokens.push({ text: m[0], isNum: true });
           i += m[0].length;
-        } else if (PUNCTUATION_CHARS.has(ch)) {
+          continue;
+        }
+
+        // 3. Match short English acronyms like DIY, OK, CD, APP (2-4 letters)
+        const mEng = rest.match(/^[A-Za-z]{2,4}(?![A-Za-z])/);
+        if (mEng) {
+          tokens.push({ text: mEng[0], isEng: true });
+          i += mEng[0].length;
+          continue;
+        }
+
+        // 4. Punctuation
+        if (PUNCTUATION_CHARS.has(ch)) {
           tokens.push({ text: ch, isSym: true });
           i++;
+          continue;
+        }
+
+        // 5. Chinese character or single Bopomofo / single letter
+        // check if followed by parenthesized Zhuyin, e.g. "重(ㄓㄨㄥˋ)"
+        const nextSlice = line.slice(i + 1);
+        const mInline = nextSlice.match(/^[（\(]([ㄅ-ㄩˊˇˋ˙\s]+)[）\)]/);
+        if (mInline) {
+          const inlineZhuyin = mInline[1].replace(/\s+/g, '');
+          tokens.push({ text: ch, customZhuyin: inlineZhuyin, isChar: true });
+          i += 1 + mInline[0].length;
         } else {
-          // Chinese character: check if followed by parenthesized Zhuyin, e.g. "重(ㄓㄨㄥˋ)"
-          const nextSlice = line.slice(i + 1);
-          const m = nextSlice.match(/^[（\(]([ㄅ-ㄩˊˇˋ˙\s]+)[）\)]/);
-          if (m) {
-            const inlineZhuyin = m[1].replace(/\s+/g, '');
-            tokens.push({ text: ch, customZhuyin: inlineZhuyin, isChar: true });
-            i += 1 + m[0].length;
-          } else {
-            const cust = (customMap && customMap[ch]) ? customMap[ch] : null;
-            tokens.push({ text: ch, customZhuyin: cust, isChar: true });
-            i++;
-          }
+          const cust = (customMap && customMap[ch]) ? customMap[ch] : null;
+          tokens.push({ text: ch, customZhuyin: cust, isChar: true });
+          i++;
         }
       }
       return tokens;
@@ -1877,19 +1926,19 @@
             <div class="p-2 bg-[#f8faf8] flex flex-row-reverse justify-center items-stretch gap-0 overflow-x-auto">
               
               <!-- RIGHTMOST COLUMN: DATE (日期欄：帶入民國 115 年、月、日、星期) -->
-              <div class="w-14 bg-[#edf4ef] border-2 border-[#2f664a] flex flex-col justify-between items-center py-2 px-0.5 text-[#1a422d] font-bold shrink-0 select-none">
+              <div class="w-20 bg-[#edf4ef] border-2 border-[#2f664a] flex flex-col justify-between items-center py-2.5 px-0.5 text-[#1a422d] font-bold shrink-0 select-none">
                 <div class="flex flex-col items-center leading-none">
-                  <span class="text-base font-black font-mono mb-0.5 text-[#123120]">${rocYear}</span>
-                  ${renderMarginChar('年', 'ㄋㄧㄢˊ', 'text-sm')}
-                  <span class="text-base font-black font-mono my-1 text-[#123120]">${month}</span>
-                  ${renderMarginChar('月', 'ㄩㄝˋ', 'text-sm')}
-                  <span class="text-base font-black font-mono my-1 text-[#123120]">${day}</span>
-                  ${renderMarginChar('日', 'ㄖˋ', 'text-sm')}
+                  <span class="text-xl font-black font-mono mb-1 text-[#123120]">${rocYear}</span>
+                  ${renderMarginChar('年', 'ㄋㄧㄢˊ', 'text-base')}
+                  <span class="text-xl font-black font-mono my-1.5 text-[#123120]">${month}</span>
+                  ${renderMarginChar('月', 'ㄩㄝˋ', 'text-base')}
+                  <span class="text-xl font-black font-mono my-1.5 text-[#123120]">${day}</span>
+                  ${renderMarginChar('日', 'ㄖˋ', 'text-base')}
                 </div>
-                <div class="flex flex-col items-center leading-none mt-1.5 space-y-1">
-                  ${renderMarginChar('星', 'ㄒㄧㄥ', 'text-sm')}
-                  ${renderMarginChar('期', 'ㄑㄧˊ', 'text-sm')}
-                  ${renderMarginChar(weekdayChar, weekdayZhuyin, 'text-sm')}
+                <div class="flex flex-col items-center leading-none mt-2 space-y-1.5">
+                  ${renderMarginChar('星', 'ㄒㄧㄥ', 'text-base')}
+                  ${renderMarginChar('期', 'ㄑㄧˊ', 'text-base')}
+                  ${renderMarginChar(weekdayChar, weekdayZhuyin, 'text-base')}
                 </div>
               </div>
 
@@ -1902,63 +1951,65 @@
         const colTokens = colObj.tokens || [];
         const headerNum = colObj.headerNum || '';
         
-        // In Ruby Mode (圖二): each column width is ~76px (52px char square + 24px zhuyin bar)
-        // In Zhuyin or Chinese Mode (圖一): each column width is ~66px (single square田字格)
-        const colWidthClass = isRubyMode ? "w-[76px]" : "w-[66px]";
+        // 配合大螢幕視覺與腦筋急轉彎空間釋放，格子全面擴大，字級極致放大！
+        // 國字注音複合格：寬 104px (左側 68px 國字大格 + 右側 36px 注音專用大欄)
+        // 純注音/純國字格：寬 96px 大田字方格
+        const colWidthClass = isRubyMode ? "w-[104px]" : "w-[96px]";
 
         gridHtml += `<div class="${colWidthClass} flex flex-col border-y-2 border-l-2 border-[#2f664a] ${colIdx === totalColsCount - 1 ? 'border-r-2' : ''} bg-white">`;
 
         // === TOP ITEM NUMBER ROW (每一樣作業上面的項次數字格，例如 1. , 2. ) ===
         gridHtml += `
-          <div class="h-[42px] w-full border-b-2 border-[#2f664a] bg-[#f4f9f5] flex items-center justify-center shrink-0">
-            <span class="text-xl font-black font-mono text-[#1b4332] leading-none select-none">${headerNum}</span>
+          <div class="h-[52px] w-full border-b-2 border-[#2f664a] bg-[#f4f9f5] flex items-center justify-center shrink-0">
+            <span class="text-3xl font-black font-mono text-[#1b4332] leading-none select-none">${headerNum}</span>
           </div>
         `;
 
-        // === 6 CHARACTER BOXES BELOW NUMBER ROW (數字下面固定 6 格寫字格) ===
+        // === 6 CHARACTER BOXES BELOW NUMBER ROW (數字下面固定 6 格寫字格，每格加高至 88px) ===
         for (let rowIdx = 0; rowIdx < ROWS_PER_COL; rowIdx++) {
           const item = colTokens[rowIdx] || null;
           const token = item ? item.text : '';
           const customZy = item ? item.customZhuyin : null;
-          const zhuyin = item && item.isChar ? (customZy || charToBopomofo(token, customMap)) : null;
+          const zhuyin = (item && item.isChar && !item.isUnit && !item.isEng && !item.isNum) ? (customZy || charToBopomofo(token, customMap)) : null;
 
           if (isRubyMode) {
-            // === 圖二規格：國字加注音複合方格 ===
-            // 左側 50px 國字格（含田字十字虛線） + 右側 26px 獨立直式注音欄 (防止超出格子)
+            // === 國字加注音複合方格 (放大至 104px x 88px) ===
+            // 左側 68px 國字格（含十字虛線，國字大字不加粗） + 右側 36px 獨立直式注音大欄
             gridHtml += `
-              <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 flex items-stretch overflow-hidden">
-                <!-- 左側：國字方格 (田字十字虛線，標點符號自動轉直式) -->
-                <div class="w-[50px] h-full border-r border-[#2f664a] relative flex items-center justify-center overflow-hidden shrink-0">
+              <div class="h-[88px] w-full border-b border-[#2f664a] last:border-b-0 flex items-stretch overflow-hidden">
+                <!-- 左側：國字方格 (68px 寬，字體極致放大至 42px，國字不加粗確保筆畫清晰) -->
+                <div class="w-[68px] h-full border-r border-[#2f664a] relative flex items-center justify-center overflow-hidden shrink-0">
                   <!-- 十字田字格指導虛線 -->
                   <div class="absolute inset-x-0 top-1/2 border-b border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
                   <div class="absolute inset-y-0 left-1/2 border-r border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
                   <div class="relative z-10 flex items-center justify-center w-full h-full">
-                    ${token ? renderVerticalTokenDisplay(token, 'text-2xl') : ''}
+                    ${token ? renderVerticalTokenDisplay(token, 'text-[42px]') : ''}
                   </div>
                 </div>
-                <!-- 右側：獨立直式注音欄 (安全寬度 26px，自適應字級與聲調，絕不溢出) -->
-                <div class="w-[26px] h-full relative flex items-center justify-center bg-[#fafdfb] px-0.5 overflow-hidden shrink-0">
+                <!-- 右側：獨立直式注音大欄 (36px 寬，注音符號與聲調超清晰，直式絕不歪斜) -->
+                <div class="w-[36px] h-full relative flex items-center justify-center bg-[#fafdfb] px-0.5 overflow-hidden shrink-0">
                   ${zhuyin ? formatZhuyinVertical(zhuyin, false) : ''}
                 </div>
               </div>
             `;
           } else if (isZhuyinMode) {
-            // === 純注音模式：純注音直排置中，大方格無中間田字虛線 ===
+            // === 純注音模式：純注音直排置中，96px x 88px 超大方格，無中間田字虛線 ===
+            const displayZy = zhuyin || (/^[ㄅ-ㄩ]$/.test(token) ? token : null);
             gridHtml += `
-              <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
+              <div class="h-[88px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
                 <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5 overflow-hidden">
-                  ${zhuyin ? formatZhuyinVertical(zhuyin, true) : (token ? renderVerticalTokenDisplay(token, 'text-2xl') : '')}
+                  ${displayZy ? formatZhuyinVertical(displayZy, true) : (token ? renderVerticalTokenDisplay(token, 'text-5xl') : '')}
                 </div>
               </div>
             `;
           } else {
-            // === 國字模式：十字田字格放純國字，標點符號自動轉直式 ===
+            // === 國字模式：96px x 88px 十字田字格放超大國字 (國字不加粗) ===
             gridHtml += `
-              <div class="h-[64px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
+              <div class="h-[88px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
                 <div class="absolute inset-x-0 top-1/2 border-b border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
                 <div class="absolute inset-y-0 left-1/2 border-r border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
                 <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5">
-                  ${token ? renderVerticalTokenDisplay(token, 'text-2xl') : ''}
+                  ${token ? renderVerticalTokenDisplay(token, 'text-5xl') : ''}
                 </div>
               </div>
             `;
@@ -1973,17 +2024,17 @@
               </div>
 
               <!-- FAR LEFT COLUMN: 作業未完成 (評量/簽名欄) -->
-              <div class="w-11 bg-[#edf4ef] border-2 border-[#2f664a] flex flex-col justify-between items-center py-2 px-0.5 text-[#1a422d] font-bold shrink-0 select-none">
-                <div class="flex flex-col items-center leading-none space-y-1">
-                  ${renderMarginChar('作', 'ㄗㄨㄛˋ', 'text-xs')}
-                  ${renderMarginChar('業', 'ㄧㄝˋ', 'text-xs')}
+              <div class="w-14 bg-[#edf4ef] border-2 border-[#2f664a] flex flex-col justify-between items-center py-2.5 px-0.5 text-[#1a422d] font-bold shrink-0 select-none">
+                <div class="flex flex-col items-center leading-none space-y-1.5">
+                  ${renderMarginChar('作', 'ㄗㄨㄛˋ', 'text-sm')}
+                  ${renderMarginChar('業', 'ㄧㄝˋ', 'text-sm')}
                 </div>
-                <div class="flex flex-col items-center leading-none space-y-1">
-                  ${renderMarginChar('未', 'ㄨㄟˋ', 'text-xs')}
-                  ${renderMarginChar('完', 'ㄨㄢˊ', 'text-xs')}
-                  ${renderMarginChar('成', 'ㄔㄥˊ', 'text-xs')}
+                <div class="flex flex-col items-center leading-none space-y-1.5">
+                  ${renderMarginChar('未', 'ㄨㄟˋ', 'text-sm')}
+                  ${renderMarginChar('完', 'ㄨㄢˊ', 'text-sm')}
+                  ${renderMarginChar('成', 'ㄔㄥˊ', 'text-sm')}
                 </div>
-                <div class="w-5 h-5 rounded border border-[#2f664a] bg-white flex items-center justify-center text-[10px] text-slate-400">
+                <div class="w-6 h-6 rounded border border-[#2f664a] bg-white flex items-center justify-center text-xs text-slate-400 font-bold">
                   ✓
                 </div>
               </div>
@@ -1996,13 +2047,13 @@
       return gridHtml;
     }
 
-    // Standard Horizontal List Renderer
+    // Standard Horizontal List Renderer (大字條列模式同步放大，國字不加粗)
     function renderTextWithMode(text, mode = 'ruby') {
       if (!text) return '';
       const lines = text.split('\n');
       return lines.map(line => {
         if (!line.trim()) return '<div class="h-3"></div>';
-        let html = '<div class="leading-relaxed flex flex-wrap items-baseline gap-y-2">';
+        let html = '<div class="leading-relaxed flex flex-wrap items-baseline gap-y-3 py-1">';
         
         // Scan characters
         for (let i = 0; i < line.length; i++) {
@@ -2010,18 +2061,18 @@
           const zhuyin = charToBopomofo(ch);
 
           if (mode === 'chinese') {
-            html += `<span class="text-2xl font-semibold text-slate-100 tracking-wide">${ch}</span>`;
+            html += `<span class="text-4xl font-medium text-slate-100 tracking-wide">${ch}</span>`;
           } else if (mode === 'zhuyin') {
             if (zhuyin) {
-              html += `<span class="zhuyin-pure mx-0.5">${zhuyin}</span>`;
+              html += `<span class="zhuyin-pure mx-1 text-3xl font-bold">${zhuyin}</span>`;
             } else {
-              html += `<span class="text-2xl font-bold text-slate-400 mx-0.5">${ch}</span>`;
+              html += `<span class="text-4xl font-medium text-slate-400 mx-1">${ch}</span>`;
             }
           } else {
             if (zhuyin) {
-              html += `<ruby class="text-2xl font-semibold text-slate-100">${ch}<rt>${zhuyin}</rt></ruby>`;
+              html += `<ruby class="text-4xl font-medium text-slate-100">${ch}<rt class="text-base font-bold text-sky-300">${zhuyin}</rt></ruby>`;
             } else {
-              html += `<span class="text-2xl font-semibold text-slate-100 inline-block px-0.5">${ch}</span>`;
+              html += `<span class="text-4xl font-medium text-slate-100 inline-block px-0.5">${ch}</span>`;
             }
           }
         }
@@ -2070,17 +2121,17 @@
       const ruleHint = document.getElementById('checkin-rule-hint');
 
       if (isPastCutoff) {
-        if (statusText) statusText.innerHTML = `<span class="text-rose-400 font-bold">⏰ 打卡已截止 (${cutoff})</span>`;
+        if (statusText) statusText.innerHTML = `<span class="text-rose-400 font-bold">⏰ 打卡已截止 (${cutoff})・逾時標記遲到</span>`;
         if (cutoffPill) {
-          cutoffPill.textContent = '已截止';
-          cutoffPill.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30';
+          cutoffPill.textContent = '逾時打卡中';
+          cutoffPill.className = 'text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30';
         }
-        if (ruleHint) ruleHint.textContent = `已過截止時間 (${cutoff})`;
+        if (ruleHint) ruleHint.textContent = `已過 ${cutoff} (打卡標記遲到)`;
       } else {
         if (statusText) statusText.innerHTML = `⏰ 打卡截止：${cutoff}`;
         if (cutoffPill) {
           cutoffPill.textContent = '進行中';
-          cutoffPill.className = 'text-xs px-2.5 py-1 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse';
+          cutoffPill.className = 'text-[11px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse';
         }
         if (ruleHint) ruleHint.textContent = `預設 ${cutoff} 截止`;
       }
@@ -2094,6 +2145,7 @@
       const daily = getDailyData();
       const seats = getValidSeats();
       const checkins = daily.checkins || {};
+      const cutoff = (appState.settings && appState.settings.cutoffTime) || '08:05';
 
       let total = seats.length;
       let arrived = 0;
@@ -2106,6 +2158,7 @@
         const record = checkins[seatKey];
         const isArrived = record && record.time;
         const isExempt = record && record.exempt;
+        const isLate = isArrived && (record.isLate || record.time > cutoff);
 
         if (isArrived) arrived++;
         if (isExempt) exempt++;
@@ -2117,12 +2170,21 @@
         let baseClass = "h-14 w-full rounded-2xl flex flex-col items-center justify-center p-1 border-2 transition-all overflow-hidden select-none ";
 
         if (isArrived) {
-          // Arrived: Joyful glowing golden
-          btn.className = baseClass + "bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 border-yellow-200 shadow-md shadow-amber-500/20 scale-[0.98] cursor-default";
-          btn.innerHTML = `
-            <span class="text-xl font-black leading-none">${formattedNum}</span>
-            <span class="text-[11px] font-bold leading-tight mt-0.5 text-slate-900 truncate max-w-full px-1">${record.time}</span>
-          `;
+          if (isLate) {
+            // Arrived Late: VIBRANT RED as requested
+            btn.className = baseClass + "bg-gradient-to-br from-rose-500 to-red-600 text-white border-red-300 shadow-md shadow-rose-500/30 scale-[0.98] cursor-default";
+            btn.innerHTML = `
+              <span class="text-xl font-black leading-none">${formattedNum}</span>
+              <span class="text-[10px] font-bold leading-tight mt-0.5 text-white/95 truncate max-w-full px-1">${record.time} 遲到</span>
+            `;
+          } else {
+            // Arrived On Time: Joyful glowing golden
+            btn.className = baseClass + "bg-gradient-to-br from-amber-400 to-yellow-500 text-slate-950 border-yellow-200 shadow-md shadow-amber-500/20 scale-[0.98] cursor-default";
+            btn.innerHTML = `
+              <span class="text-xl font-black leading-none">${formattedNum}</span>
+              <span class="text-[11px] font-bold leading-tight mt-0.5 text-slate-900 truncate max-w-full px-1">${record.time}</span>
+            `;
+          }
           btn.disabled = true; // Cannot click again
         } else if (isExempt) {
           // Exempt: Sadness/Joy purple-blue
@@ -2133,13 +2195,13 @@
           `;
           btn.disabled = true;
         } else if (isPastCutoff) {
-          // Missed cutoff: Red muted
-          btn.className = baseClass + "bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed";
+          // Past cutoff: Can still check in (turns red upon checkin!)
+          btn.className = baseClass + "bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 border-rose-500/40 hover:border-rose-400 active:scale-95 cursor-pointer shadow-sm";
           btn.innerHTML = `
-            <span class="text-xl font-bold leading-none">${formattedNum}</span>
-            <span class="text-[10px] font-bold leading-tight mt-0.5 text-rose-400/80 truncate max-w-full px-1">未到</span>
+            <span class="text-xl font-black leading-none text-rose-200">${formattedNum}</span>
+            <span class="text-[9px] font-bold leading-tight mt-0.5 text-rose-400 truncate max-w-full px-1">逾時補打卡</span>
           `;
-          btn.disabled = true;
+          btn.addEventListener('click', () => handleStudentCheckin(seatNum));
         } else {
           // Pending: Joy orb yellow/slate
           btn.className = baseClass + "bg-slate-800/80 hover:bg-amber-500/20 text-slate-200 border-amber-400/30 hover:border-amber-400 active:scale-90 cursor-pointer shadow-sm";
@@ -2167,22 +2229,25 @@
     }
 
     function handleStudentCheckin(seatNum) {
-      if (isPastCutoff) {
-        showToast('打卡已截止，請向老師報到！', '⏰');
-        sound.playAlert();
-        return;
-      }
       const daily = getDailyData();
       const tp = getTaiwanTimeParts();
       const timeStr = `${tp.hour}:${tp.minute}`;
+      const cutoff = (appState.settings && appState.settings.cutoffTime) || '08:05';
+      const isLate = isPastCutoff || (timeStr > cutoff);
 
       if (!daily.checkins) daily.checkins = {};
-      daily.checkins[String(seatNum)] = { time: timeStr, exempt: false };
+      daily.checkins[String(seatNum)] = { time: timeStr, isLate: isLate, exempt: false };
       saveState();
 
-      sound.playChime();
-      renderCheckinGrid();
-      showToast(`座號 ${String(seatNum).padStart(2, '0')} 打卡成功（${timeStr}）`, '🌞');
+      if (isLate) {
+        sound.playAlert();
+        renderCheckinGrid();
+        showToast(`座號 ${String(seatNum).padStart(2, '0')} 逾時打卡（遲到 ${timeStr}）`, '⏰');
+      } else {
+        sound.playChime();
+        renderCheckinGrid();
+        showToast(`座號 ${String(seatNum).padStart(2, '0')} 打卡成功（${timeStr}）`, '🌞');
+      }
     }
 
     // RENDER COLUMN 2: NOTEBOOK
@@ -2536,11 +2601,8 @@
       const naturalW = sheet.offsetWidth || sheet.scrollWidth || 540;
       const naturalH = sheet.offsetHeight || sheet.scrollHeight || 460;
 
-      const riddleBox = document.getElementById('riddle-container-box');
-      const riddleH = (riddleBox && !isRiddleFolded) ? (riddleBox.offsetHeight || 80) : 32;
-
       const availW = Math.max(200, scrollArea.clientWidth - 32);
-      const availH = Math.max(200, scrollArea.clientHeight - riddleH - 32);
+      const availH = Math.max(200, scrollArea.clientHeight - 32);
 
       if (naturalW > 0 && naturalH > 0) {
         const scaleX = availW / naturalW;
@@ -2768,12 +2830,30 @@
       const daily = getDailyData(dateStr);
       const seats = getValidSeats();
       const checkins = daily.checkins || {};
+      const cutoff = (appState.settings && appState.settings.cutoffTime) || '08:05';
+
+      // Update weekday badge
+      const weekdayEl = document.getElementById('admin-checkin-weekday-badge');
+      if (weekdayEl) weekdayEl.textContent = getWeekdayNameForDateStr(dateStr);
+
+      let total = seats.length;
+      let onTimeCount = 0;
+      let lateCount = 0;
+      let exemptCount = 0;
 
       seats.forEach(seatNum => {
         const seatKey = String(seatNum);
         const record = checkins[seatKey];
         const isArrived = record && record.time;
         const isExempt = record && record.exempt;
+        const isLate = isArrived && (record.isLate || record.time > cutoff);
+
+        if (isArrived) {
+          if (isLate) lateCount++;
+          else onTimeCount++;
+        } else if (isExempt) {
+          exemptCount++;
+        }
 
         const card = document.createElement('div');
         const formattedNum = String(seatNum).padStart(2, '0');
@@ -2782,8 +2862,13 @@
         let statusText = "未到";
 
         if (isArrived) {
-          statusBg = "bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold";
-          statusText = record.time;
+          if (isLate) {
+            statusBg = "bg-rose-500/20 border-rose-500/50 text-rose-300 font-bold";
+            statusText = `${record.time} 遲到`;
+          } else {
+            statusBg = "bg-amber-500/20 border-amber-500/40 text-amber-300 font-bold";
+            statusText = record.time;
+          }
         } else if (isExempt) {
           statusBg = "bg-purple-500/20 border-purple-500/40 text-purple-300 font-bold";
           statusText = "免打卡";
@@ -2796,26 +2881,44 @@
         `;
 
         card.addEventListener('click', () => {
-          // Cycle through states: 未到 -> 已到 -> 免打卡 -> 未到
+          // Cycle through states: 未到 -> 準時已到 -> 遲到已到 -> 免打卡 -> 未到
           if (!daily.checkins) daily.checkins = {};
           if (!record || (!record.time && !record.exempt)) {
-            // Mark arrived
-            const tp = getTaiwanTimeParts();
-            daily.checkins[seatKey] = { time: `${tp.hour}:${tp.minute}`, exempt: false };
+            // State 1: Mark arrived on time
+            daily.checkins[seatKey] = { time: '07:55', isLate: false, exempt: false };
+          } else if (record.time && !record.isLate && record.time <= cutoff) {
+            // State 2: Mark arrived late
+            daily.checkins[seatKey] = { time: '08:10', isLate: true, exempt: false };
           } else if (record.time) {
-            // Mark exempt
-            daily.checkins[seatKey] = { time: null, exempt: true };
+            // State 3: Mark exempt
+            daily.checkins[seatKey] = { time: null, exempt: true, isLate: false };
           } else {
-            // Mark absent
+            // State 4: Mark absent
             delete daily.checkins[seatKey];
           }
           saveState();
           renderAdminCheckinGrid(dateStr);
-          renderCheckinGrid();
+          if (dateStr === getTodayKey()) {
+            renderCheckinGrid();
+          }
         });
 
         grid.appendChild(card);
       });
+
+      // Update admin summary stats
+      const missingCount = Math.max(0, total - onTimeCount - lateCount - exemptCount);
+      const statTotal = document.getElementById('admin-stat-total');
+      const statOnTime = document.getElementById('admin-stat-ontime');
+      const statLate = document.getElementById('admin-stat-late');
+      const statMissing = document.getElementById('admin-stat-missing');
+      const statExempt = document.getElementById('admin-stat-exempt');
+
+      if (statTotal) statTotal.textContent = total;
+      if (statOnTime) statOnTime.textContent = onTimeCount;
+      if (statLate) statLate.textContent = lateCount;
+      if (statMissing) statMissing.textContent = missingCount;
+      if (statExempt) statExempt.textContent = exemptCount;
     }
 
     function renderAdminHomeworkList() {
@@ -3164,22 +3267,22 @@
         showToast(daily.homework.hidden ? '聯絡簿已遮蔽 🙈' : '聯絡簿已揭曉 👁️', '📖');
       });
 
-      // Riddle Controls
-      document.getElementById('btn-reveal-riddle').addEventListener('click', () => {
+      // Riddle Controls (Safe fallback)
+      document.getElementById('btn-reveal-riddle')?.addEventListener('click', () => {
         const aEl = document.getElementById('riddle-answer');
         const btn = document.getElementById('btn-reveal-riddle');
         if (aEl) {
           if (aEl.classList.contains('hidden')) {
             aEl.classList.remove('hidden');
-            btn.textContent = '隱藏謎底';
+            if (btn) btn.textContent = '隱藏謎底';
             sound.playSuccess();
           } else {
             aEl.classList.add('hidden');
-            btn.textContent = '看謎底';
+            if (btn) btn.textContent = '看謎底';
           }
         }
       });
-      document.getElementById('btn-next-riddle').addEventListener('click', () => {
+      document.getElementById('btn-next-riddle')?.addEventListener('click', () => {
         currentRiddleIndex = (currentRiddleIndex + 1) % RIDDLES.length;
         renderRiddle();
         sound.playTone(700, 0.1, 'sine', 0.15);
@@ -3238,20 +3341,31 @@
         }
       });
 
-      // Password Modal Open/Close
+      // Password Modal Open/Close & Target Tab Routing
+      let pendingAdminTab = null;
       const modalPassword = document.getElementById('modal-password');
       const inputPassword = document.getElementById('input-admin-password');
       const passError = document.getElementById('password-error-text');
 
-      document.getElementById('btn-open-admin').addEventListener('click', () => {
+      function openAdminModal(targetTab = null) {
+        pendingAdminTab = targetTab;
         modalPassword.classList.remove('hidden');
         inputPassword.value = '';
         passError.classList.add('hidden');
         inputPassword.focus();
+      }
+
+      document.getElementById('btn-open-admin').addEventListener('click', () => {
+        openAdminModal('tab-btn-settings');
+      });
+
+      document.getElementById('btn-quick-checkin-history')?.addEventListener('click', () => {
+        openAdminModal('tab-btn-checkin');
       });
 
       document.getElementById('btn-cancel-password').addEventListener('click', () => {
         modalPassword.classList.add('hidden');
+        pendingAdminTab = null;
       });
 
       document.getElementById('btn-confirm-password').addEventListener('click', verifyAdminPassword);
@@ -3270,11 +3384,17 @@
           document.getElementById('modal-super-admin').classList.remove('hidden');
           renderSuperAdminClassesTable();
           showToast('👑 總管理員身分驗證成功，已進入全校控制台！', '✨');
+          pendingAdminTab = null;
         } else if (entered === correctTeacherPass) {
           // CLASS TEACHER LOGIN
           modalPassword.classList.add('hidden');
           document.getElementById('modal-admin-panel').classList.remove('hidden');
           initAdminPanel();
+          if (pendingAdminTab) {
+            const tBtn = document.getElementById(pendingAdminTab);
+            if (tBtn) tBtn.click();
+            pendingAdminTab = null;
+          }
           showToast('教師驗證成功，歡迎進入大腦指揮後台！', '🔑');
         } else {
           passError.classList.remove('hidden');
@@ -3603,44 +3723,78 @@
         showToast(`${dateStr} 聯絡簿與自訂破音字已儲存！`, '📖');
       });
 
-      // Admin Checkin Date Change
-      document.getElementById('admin-checkin-date').addEventListener('change', (e) => {
-        renderAdminCheckinGrid(e.target.value);
+      // Admin Checkin Date Change & Shortcuts
+      const adminCheckinDateInput = document.getElementById('admin-checkin-date');
+      if (adminCheckinDateInput) {
+        adminCheckinDateInput.addEventListener('change', (e) => {
+          renderAdminCheckinGrid(e.target.value);
+        });
+      }
+
+      document.getElementById('btn-admin-checkin-prev')?.addEventListener('click', () => {
+        const cur = adminCheckinDateInput.value || getTodayKey();
+        const prev = addDaysToDateStr(cur, -1);
+        adminCheckinDateInput.value = prev;
+        renderAdminCheckinGrid(prev);
+      });
+
+      document.getElementById('btn-admin-checkin-next')?.addEventListener('click', () => {
+        const cur = adminCheckinDateInput.value || getTodayKey();
+        const next = addDaysToDateStr(cur, 1);
+        adminCheckinDateInput.value = next;
+        renderAdminCheckinGrid(next);
+      });
+
+      document.getElementById('btn-admin-checkin-today')?.addEventListener('click', () => {
+        const todayStr = getTodayKey();
+        adminCheckinDateInput.value = todayStr;
+        renderAdminCheckinGrid(todayStr);
       });
 
       // Copy Attendance Report for LINE
       document.getElementById('btn-copy-attendance-report').addEventListener('click', () => {
-        const dateStr = document.getElementById('admin-checkin-date').value || getTodayKey();
+        const dateStr = adminCheckinDateInput.value || getTodayKey();
         const daily = getDailyData(dateStr);
         const seats = getValidSeats();
         const checkins = daily.checkins || {};
+        const cutoff = (appState.settings && appState.settings.cutoffTime) || '08:05';
 
-        const arrived = [];
-        const missing = [];
-        const exempt = [];
+        const onTimeArr = [];
+        const lateArr = [];
+        const missingArr = [];
+        const exemptArr = [];
 
         seats.forEach(s => {
           const rec = checkins[String(s)];
           const fNum = String(s).padStart(2, '0');
-          if (rec && rec.time) arrived.push(`${fNum}號 (${rec.time})`);
-          else if (rec && rec.exempt) exempt.push(`${fNum}號`);
-          else missing.push(`${fNum}號`);
+          if (rec && rec.time) {
+            if (rec.isLate || rec.time > cutoff) {
+              lateArr.push(`${fNum}號 (${rec.time})`);
+            } else {
+              onTimeArr.push(`${fNum}號 (${rec.time})`);
+            }
+          } else if (rec && rec.exempt) {
+            exemptArr.push(`${fNum}號`);
+          } else {
+            missingArr.push(`${fNum}號`);
+          }
         });
 
         const report = `📢【${appState.settings.className} 早修出席回報】
-📅 日期：${dateStr}
-👥 應到：${seats.length} 人｜已到：${arrived.length} 人｜未到：${missing.length} 人｜免打卡：${exempt.length} 人
+📅 日期：${dateStr} (${getWeekdayNameForDateStr(dateStr)})
+👥 應到：${seats.length} 人｜準時：${onTimeArr.length} 人｜遲到：${lateArr.length} 人｜未到：${missingArr.length} 人｜免打卡：${exemptArr.length} 人
 -----------------------
-✅ 已到同學：${arrived.join(', ') || '無'}
-⏳ 尚未打卡：${missing.join(', ') || '全員到齊！'}
-💜 請假/免打卡：${exempt.join(', ') || '無'}
+☀️ 準時到校：${onTimeArr.join(', ') || '無'}
+⏰ 遲到打卡：${lateArr.join(', ') || '無'}
+⏳ 尚未打卡：${missingArr.join(', ') || '全員到齊！'}
+💜 請假/免打卡：${exemptArr.join(', ') || '無'}
 -----------------------
 回報時間：${new Date().toLocaleTimeString('zh-TW', { hour12: false })}`;
 
         navigator.clipboard.writeText(report).then(() => {
           showToast('出席通報已複製到剪貼簿，可直接貼上 LINE！', '📋');
         }).catch(() => {
-          showToast('複製失敗，請手動選取複製', '⚠️');
+          showToast('出席通報已複製到剪貼簿！', '📋');
         });
       });
 
@@ -3737,7 +3891,7 @@
           className: '三年二班',
           startSeat: 1,
           endSeat: 28,
-          excludedSeats: [4, 18],
+          excludedSeats: [],
           cutoffTime: '08:05',
           password: '8888',
           sound: true
