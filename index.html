@@ -109,12 +109,6 @@
         <span>👑</span>
         <span>總管理後台</span>
       </button>
-
-      <!-- Test Sandbox Indicator Badge -->
-      <span class="hidden md:inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/50 text-xs font-black shadow-sm" title="此為獨立測試環境，所有操作絕不影響正式版！">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-        <span>🧪 獨立測試模式（不影響正式環境）</span>
-      </span>
     </div>
 
     <!-- Center: Large Real-time Clock (Taiwan Time UTC+8) -->
@@ -1111,7 +1105,14 @@
         const raw = localStorage.getItem(getClassStorageKey(cid));
         if (raw) {
           const parsed = JSON.parse(raw);
-          return { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
+          const s = { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
+          if (cid === '103' && JSON.stringify(s.settings.excludedSeats) === '[4,18]') {
+            s.settings.excludedSeats = [];
+          }
+          if (!Array.isArray(s.settings.excludedSeats)) {
+            s.settings.excludedSeats = [];
+          }
+          return s;
         }
         // Legacy fallback for 302
         if (cid === '302') {
@@ -1258,12 +1259,18 @@
             isReceivingRemoteSync = true;
             if (val.settings) {
               appState.settings = Object.assign({}, appState.settings, val.settings);
+              if (activeClassId === '103' && JSON.stringify(appState.settings.excludedSeats) === '[4,18]') {
+                appState.settings.excludedSeats = [];
+              }
+              if (!val.settings.excludedSeats || !Array.isArray(val.settings.excludedSeats)) {
+                appState.settings.excludedSeats = [];
+              }
             }
             if (val.daily) {
               appState.daily = Object.assign({}, appState.daily, val.daily);
             }
             try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+              localStorage.setItem(getClassStorageKey(activeClassId), JSON.stringify(appState));
             } catch (e) {}
             renderAll();
             isReceivingRemoteSync = false;
@@ -2374,7 +2381,7 @@
     // RENDER COLUMN 3: HOMEWORK
     function renderHomework() {
       const daily = getDailyData();
-      const assignments = daily.assignments || [];
+      const assignments = (daily.assignments || []).filter(a => !String(a.id || "").startsWith("hw-default"));
       const tabsContainer = document.getElementById('hw-tabs-container');
       const grid = document.getElementById('homework-grid');
       const modeBadge = document.getElementById('hw-mode-badge');
@@ -2927,7 +2934,7 @@
       listContainer.innerHTML = '';
 
       const daily = getDailyData();
-      const assignments = daily.assignments || [];
+      const assignments = (daily.assignments || []).filter(a => !String(a.id || "").startsWith("hw-default"));
 
       if (!assignments.length) {
         listContainer.innerHTML = '<p class="text-xs text-slate-500">今日尚無補繳項目，請在上方新增！</p>';
@@ -3963,7 +3970,7 @@
           resetClickCount = 0;
           resetBtn.textContent = '⚠️ 清空所有資料';
           resetBtn.className = 'px-3 py-1.5 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 text-xs font-bold border border-rose-800/50';
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(getClassStorageKey(activeClassId));
           appState = JSON.parse(JSON.stringify(defaultState));
           saveState();
           initAdminPanel();
