@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>【測試隔離版】班級早修小幫手 - 測試控制台</title>
+  <title>班級早修小幫手 - 75吋觸控大螢幕早修控制台</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
@@ -248,7 +248,7 @@
                 </button>
               </div>
             </div>
-            <p class="text-xs text-slate-400">大腦總部今日重要任務與抄寫事項</p>
+            <p class="text-xs text-slate-400">大腦總部重要任務與抄寫事項</p>
           </div>
         </div>
 
@@ -733,7 +733,7 @@
 
             <!-- Existing Assignments List & Corrections -->
             <div class="space-y-3 pt-2">
-              <h5 class="text-xs font-bold text-slate-400">今日補繳作業清單：</h5>
+              <h5 class="text-xs font-bold text-slate-300 flex items-center justify-between"><span>進行中補繳作業任務（跨日持續保留，點擊結束任務結案）：</span><span class="text-[11px] text-emerald-400">跨日不重設</span></h5>
               <div id="admin-hw-list" class="space-y-3">
                 <!-- Dynamic list with delete button and student completion toggle -->
               </div>
@@ -1021,7 +1021,9 @@
         password: '8888',
         sound: true
       },
-      daily: {}
+      daily: {},
+      activeAssignments: [],
+      activeAssignmentsMigrated: false
     };
 
     function getSuperPassword() {
@@ -1100,43 +1102,76 @@
       return `morning_helper_data_${cid}`;
     }
 
+    function getActiveAssignmentsList() {
+      if (!appState) return [];
+      if (!Array.isArray(appState.activeAssignments)) {
+        appState.activeAssignments = [];
+      }
+      return appState.activeAssignments.filter(a => a && !String(a.id || '').startsWith('hw-default'));
+    }
+
     function loadClassState(cid) {
+      let stateObj = null;
       try {
         const raw = localStorage.getItem(getClassStorageKey(cid));
         if (raw) {
           const parsed = JSON.parse(raw);
-          const s = { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
-          if (cid === '103' && JSON.stringify(s.settings.excludedSeats) === '[4,18]') {
-            s.settings.excludedSeats = [];
-          }
-          if (!Array.isArray(s.settings.excludedSeats)) {
-            s.settings.excludedSeats = [];
-          }
-          return s;
-        }
-        // Legacy fallback for 302
-        if (cid === '302') {
+          stateObj = { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
+        } else if (cid === '302') {
           const legacy = localStorage.getItem(STORAGE_KEY_LEGACY);
           if (legacy) {
             const parsed = JSON.parse(legacy);
-            return { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
+            stateObj = { ...defaultState, ...parsed, settings: { ...defaultState.settings, ...(parsed.settings || {}) } };
           }
         }
       } catch (e) {}
 
-      const reg = getClassRegistry()[cid] || {};
-      return {
-        ...defaultState,
-        settings: {
-          ...defaultState.settings,
-          className: reg.name || '三年二班',
-          startSeat: reg.startSeat || 1,
-          endSeat: reg.endSeat || 28,
-          excludedSeats: reg.excludedSeats || [],
-          password: reg.password || '8888'
-        },
-        daily: {}
-      };
+      if (!stateObj) {
+        const reg = getClassRegistry()[cid] || {};
+        stateObj = {
+          ...defaultState,
+          settings: {
+            ...defaultState.settings,
+            className: reg.name || '三年二班',
+            startSeat: reg.startSeat || 1,
+            endSeat: reg.endSeat || 28,
+            excludedSeats: reg.excludedSeats || [],
+            password: reg.password || '8888'
+          },
+          daily: {},
+          activeAssignments: []
+        };
+      }
+
+      if (cid === '103' && JSON.stringify(stateObj.settings.excludedSeats) === '[4,18]') {
+        stateObj.settings.excludedSeats = [];
+      }
+      if (!Array.isArray(stateObj.settings.excludedSeats)) {
+        stateObj.settings.excludedSeats = [];
+      }
+
+      // Ensure activeAssignments is populated
+      if (!Array.isArray(stateObj.activeAssignments)) {
+        stateObj.activeAssignments = [];
+      }
+      if (!stateObj.activeAssignmentsMigrated && stateObj.activeAssignments.length === 0) {
+        if (stateObj.daily && typeof stateObj.daily === 'object') {
+          const dates = Object.keys(stateObj.daily).sort();
+          for (let i = dates.length - 1; i >= 0; i--) {
+            const dVal = stateObj.daily[dates[i]];
+            if (dVal && Array.isArray(dVal.assignments) && dVal.assignments.length > 0) {
+              const valid = dVal.assignments.filter(a => a && !String(a.id || '').startsWith('hw-default'));
+              if (valid.length > 0) {
+                stateObj.activeAssignments = JSON.parse(JSON.stringify(valid));
+                stateObj.activeAssignmentsMigrated = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      return stateObj;
     }
 
     let firebaseApp = null;
@@ -1259,15 +1294,35 @@
             isReceivingRemoteSync = true;
             if (val.settings) {
               appState.settings = Object.assign({}, appState.settings, val.settings);
-              if (activeClassId === '103' && JSON.stringify(appState.settings.excludedSeats) === '[4,18]') {
-                appState.settings.excludedSeats = [];
-              }
               if (!val.settings.excludedSeats || !Array.isArray(val.settings.excludedSeats)) {
                 appState.settings.excludedSeats = [];
               }
             }
             if (val.daily) {
               appState.daily = Object.assign({}, appState.daily, val.daily);
+            }
+            if (val.activeAssignmentsMigrated) {
+              appState.activeAssignments = Array.isArray(val.activeAssignments) ? val.activeAssignments : [];
+              appState.activeAssignmentsMigrated = true;
+            } else {
+              // Backward migration for existing cloud classes
+              if (val.activeAssignments && Array.isArray(val.activeAssignments)) {
+                appState.activeAssignments = val.activeAssignments;
+              } else if (val.daily && typeof val.daily === 'object') {
+                const dates = Object.keys(val.daily).sort();
+                for (let i = dates.length - 1; i >= 0; i--) {
+                  const dVal = val.daily[dates[i]];
+                  if (dVal && Array.isArray(dVal.assignments) && dVal.assignments.length > 0) {
+                    const valid = dVal.assignments.filter(a => a && !String(a.id || '').startsWith('hw-default'));
+                    if (valid.length > 0) {
+                      appState.activeAssignments = JSON.parse(JSON.stringify(valid));
+                      break;
+                    }
+                  }
+                }
+              }
+              appState.activeAssignmentsMigrated = true;
+              setTimeout(() => pushStateToFirebase(), 600);
             }
             try {
               localStorage.setItem(getClassStorageKey(activeClassId), JSON.stringify(appState));
@@ -1305,6 +1360,8 @@
       const payload = {
         settings: appState.settings,
         daily: appState.daily,
+        activeAssignments: getActiveAssignmentsList(),
+        activeAssignmentsMigrated: true,
         lastUpdated: Date.now()
       };
       firebaseDbRef.set(payload).then(() => {
@@ -1775,6 +1832,12 @@
         const vChar = VERTICAL_PUNCT_MAP[token];
         return `<span class="${sizeClass} font-bold text-slate-900 leading-none select-none">${vChar}</span>`;
       }
+      // Time format (例如 7:45, 07:45, 12:30, 8:00, 7：45 等時間標記，固定容納於單一格子內)
+      if (/^\d{1,2}[:：]\d{2}$/.test(token)) {
+        const tLen = token.length;
+        const tSize = tLen >= 5 ? 'text-[24px]' : 'text-[28px]';
+        return `<span class="${tSize} font-bold text-slate-900 font-sans leading-none select-none tracking-tight">${token.replace('：', ':')}</span>`;
+      }
       // Numbers (例如頁碼 39、41)
       if (/^\d+$/.test(token)) {
         return `<span class="text-3xl font-bold text-slate-900 font-mono leading-none select-none">${token}</span>`;
@@ -1820,6 +1883,18 @@
         }
 
         const rest = line.slice(i);
+
+        // 0. Match Time format like 7:45, 07:45, 12:30, 8:00, 7：45 in ONE box
+        const mTime = rest.match(/^(\d{1,2})\s*[:：]\s*(\d{2})(?!\d)/);
+        if (mTime) {
+          const h = parseInt(mTime[1], 10);
+          const m = parseInt(mTime[2], 10);
+          if (h >= 0 && h <= 24 && m >= 0 && m < 60) {
+            tokens.push({ text: mTime[1] + ':' + mTime[2], isTime: true });
+            i += mTime[0].length;
+            continue;
+          }
+        }
 
         // 1. Match Unit/Lesson abbreviations + numbers in ONE box (e.g. U5, U 5, L3, L 3, CH2, P18, p.18, ㄓ5, No.1)
         const mUnit = rest.match(/^([A-Za-z]{1,4}|[ㄅ-ㄩ])\s*[-._]?\s*(\d+)/);
@@ -1977,7 +2052,7 @@
           const item = colTokens[rowIdx] || null;
           const token = item ? item.text : '';
           const customZy = item ? item.customZhuyin : null;
-          const zhuyin = (item && item.isChar && !item.isUnit && !item.isEng && !item.isNum) ? (customZy || charToBopomofo(token, customMap)) : null;
+          const zhuyin = (item && item.isChar && !item.isUnit && !item.isEng && !item.isNum && !item.isTime) ? (customZy || charToBopomofo(token, customMap)) : null;
 
           if (isRubyMode) {
             // === 國字加注音複合方格 (放大至 104px x 88px) ===
@@ -2378,10 +2453,11 @@
       }
     }
 
-    // RENDER COLUMN 3: HOMEWORK
+    // RENDER COLUMN 3: HOMEWORK (持續進行中的待補繳任務，不隨換日重設)
+    let currentSelectedAssignmentId = null;
+
     function renderHomework() {
-      const daily = getDailyData();
-      const assignments = (daily.assignments || []).filter(a => !String(a.id || "").startsWith("hw-default"));
+      const assignments = getActiveAssignmentsList();
       const tabsContainer = document.getElementById('hw-tabs-container');
       const grid = document.getElementById('homework-grid');
       const modeBadge = document.getElementById('hw-mode-badge');
@@ -2391,19 +2467,18 @@
 
       if (!assignments.length) {
         if (tabsContainer) tabsContainer.innerHTML = '<span class="text-xs text-slate-500">尚無補繳項目</span>';
-        if (grid) grid.innerHTML = '<div class="col-span-3 text-center text-xs text-slate-500 py-6">今日無補繳作業！</div>';
-        if (titleEl) titleEl.textContent = '無作業';
+        if (grid) grid.innerHTML = '<div class="col-span-3 text-center text-xs text-slate-500 py-6">目前無進行中的補繳作業！🎉</div>';
+        if (titleEl) titleEl.textContent = '無待補繳項目';
         if (progressText) progressText.textContent = '0 / 0 人';
         if (progressBar) progressBar.style.width = '100%';
         return;
       }
 
       // Find current assignment
-      let current = assignments.find(a => a.id === daily.currentAssignmentId);
+      let current = assignments.find(a => a.id === currentSelectedAssignmentId);
       if (!current) {
         current = assignments[0];
-        daily.currentAssignmentId = current.id;
-        saveState();
+        currentSelectedAssignmentId = current.id;
       }
 
       // Render Tabs
@@ -2419,8 +2494,7 @@
           }`;
           tabBtn.textContent = hw.title;
           tabBtn.addEventListener('click', () => {
-            daily.currentAssignmentId = hw.id;
-            saveState();
+            currentSelectedAssignmentId = hw.id;
             renderHomework();
           });
           tabsContainer.appendChild(tabBtn);
@@ -2500,13 +2574,18 @@
     }
 
     function handleStudentHomeworkSubmit(hwId, seatNum) {
-      const daily = getDailyData();
-      const hw = (daily.assignments || []).find(a => a.id === hwId);
+      const assignments = getActiveAssignmentsList();
+      const hw = assignments.find(a => a.id === hwId);
       if (!hw) return;
 
       if (!hw.completedSeats) hw.completedSeats = [];
       if (!hw.completedSeats.includes(seatNum)) {
         hw.completedSeats.push(seatNum);
+        // Also keep daily.assignments synced if exists for historical log
+        const daily = getDailyData();
+        if (daily) {
+          daily.assignments = JSON.parse(JSON.stringify(appState.activeAssignments));
+        }
         saveState();
         sound.playSuccess();
         renderHomework();
@@ -2933,11 +3012,10 @@
       if (!listContainer) return;
       listContainer.innerHTML = '';
 
-      const daily = getDailyData();
-      const assignments = (daily.assignments || []).filter(a => !String(a.id || "").startsWith("hw-default"));
+      const assignments = getActiveAssignmentsList();
 
       if (!assignments.length) {
-        listContainer.innerHTML = '<p class="text-xs text-slate-500">今日尚無補繳項目，請在上方新增！</p>';
+        listContainer.innerHTML = '<p class="text-xs text-slate-500">目前尚無進行中的補繳項目，請在上方新增！</p>';
         return;
       }
 
@@ -2948,10 +3026,11 @@
         const validSeats = getValidSeats();
         const targets = hw.mode === 'all' ? validSeats : (hw.targetSeats || []);
         const done = hw.completedSeats || [];
+        const isAllDone = targets.length > 0 && targets.every(s => done.includes(s));
 
         item.innerHTML = `
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 flex-wrap gap-1">
               <span class="text-base font-bold text-emerald-300">${hw.title}</span>
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
                 ${hw.mode === 'all' ? '全班補繳' : '指定同學'}
@@ -2959,10 +3038,16 @@
               <span class="text-xs text-slate-400 font-mono">
                 已補繳：${done.length} / ${targets.length} 人
               </span>
+              ${isAllDone ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">全員到齊 ✓</span>' : ''}
             </div>
-            <button class="btn-del-hw text-xs text-rose-400 hover:text-rose-300 p-1 font-bold" data-id="${hw.id}">
-              🗑️ 刪除
-            </button>
+            <div class="flex items-center space-x-1">
+              <button class="btn-complete-hw text-xs bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg font-bold transition active:scale-95" data-id="${hw.id}" title="補繳結束，手動結案任務">
+                🏁 結束任務
+              </button>
+              <button class="btn-del-hw text-xs text-rose-400 hover:text-rose-300 p-1 font-bold" data-id="${hw.id}" title="刪除此補繳作業">
+                🗑️
+              </button>
+            </div>
           </div>
           <!-- Seats quick toggle -->
           <div class="pt-2 border-t border-slate-800 flex flex-wrap gap-1">
@@ -2989,7 +3074,8 @@
         btn.addEventListener('click', (e) => {
           const hwId = btn.getAttribute('data-hwid');
           const seatNum = parseInt(btn.getAttribute('data-seat'));
-          const hw = daily.assignments.find(a => a.id === hwId);
+          const assignments = getActiveAssignmentsList();
+          const hw = assignments.find(a => a.id === hwId);
           if (hw) {
             if (!hw.completedSeats) hw.completedSeats = [];
             const index = hw.completedSeats.indexOf(seatNum);
@@ -2998,6 +3084,10 @@
             } else {
               hw.completedSeats.push(seatNum);
             }
+            const daily = getDailyData();
+            if (daily) {
+              daily.assignments = JSON.parse(JSON.stringify(appState.activeAssignments));
+            }
             saveState();
             renderAdminHomeworkList();
             renderHomework();
@@ -3005,11 +3095,35 @@
         });
       });
 
+      // Bind complete task buttons (結束任務)
+      listContainer.querySelectorAll('.btn-complete-hw').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const hwId = btn.getAttribute('data-id');
+          const assignments = getActiveAssignmentsList();
+          const hw = assignments.find(a => a.id === hwId);
+          const hwTitle = hw ? hw.title : '該項作業';
+          appState.activeAssignments = assignments.filter(a => a.id !== hwId);
+          const daily = getDailyData();
+          if (daily) {
+            daily.assignments = JSON.parse(JSON.stringify(appState.activeAssignments));
+          }
+          saveState();
+          renderAdminHomeworkList();
+          renderHomework();
+          showToast(`已手動結束「${hwTitle}」補繳任務！`, '🏁');
+        });
+      });
+
       // Bind delete buttons
       listContainer.querySelectorAll('.btn-del-hw').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const hwId = btn.getAttribute('data-id');
-          daily.assignments = daily.assignments.filter(a => a.id !== hwId);
+          const assignments = getActiveAssignmentsList();
+          appState.activeAssignments = assignments.filter(a => a.id !== hwId);
+          const daily = getDailyData();
+          if (daily) {
+            daily.assignments = JSON.parse(JSON.stringify(appState.activeAssignments));
+          }
           saveState();
           renderAdminHomeworkList();
           renderHomework();
@@ -3830,25 +3944,31 @@
           ? targetStr.split(/[,，\s]+/).map(s => parseInt(s.trim())).filter(n => !isNaN(n))
           : [];
 
-        const daily = getDailyData();
-        if (!daily.assignments) daily.assignments = [];
-
+        const assignments = getActiveAssignmentsList();
         const newId = 'hw-' + Date.now();
-        daily.assignments.push({
+        assignments.push({
           id: newId,
           title: title,
           mode: mode,
           targetSeats: targets,
-          completedSeats: []
+          completedSeats: [],
+          createdAt: getTodayKey()
         });
-        daily.currentAssignmentId = newId;
+        appState.activeAssignments = assignments;
+        currentSelectedAssignmentId = newId;
+
+        // Keep daily.assignments synced as well
+        const daily = getDailyData();
+        if (daily) {
+          daily.assignments = JSON.parse(JSON.stringify(appState.activeAssignments));
+        }
 
         saveState();
         document.getElementById('admin-hw-title').value = '';
         document.getElementById('admin-hw-target-seats').value = '';
         renderAdminHomeworkList();
         renderHomework();
-        showToast(`已新增作業「${title}」`, '📝');
+        showToast(`已新增補繳任務「${title}」（跨日保留，直到手動結束）`, '📝');
       });
 
       // Backup: Export JSON
@@ -3944,6 +4064,8 @@
           ],
           currentAssignmentId: 'hw-demo-1'
         };
+        appState.activeAssignments = JSON.parse(JSON.stringify(appState.daily[today].assignments));
+        appState.activeAssignmentsMigrated = true;
         saveState();
         initAdminPanel();
         renderAll();
