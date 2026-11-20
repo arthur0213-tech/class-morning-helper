@@ -264,7 +264,7 @@
             </button>
           </div>
 
-          <!-- 3 Mode Buttons: 國字 / 注音 / 國字+注音 -->
+          <!-- 4 Mode Buttons: 國字 / 注音 / 國字+注音 / 🌟 依已教國字 -->
           <div class="bg-slate-950/70 p-1 rounded-2xl border border-slate-800 flex space-x-1">
             <button id="btn-mode-chinese" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 text-slate-300 hover:text-white" title="僅顯示國字">
               國字
@@ -275,7 +275,16 @@
             <button id="btn-mode-ruby" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-sky-500 text-white shadow-md shadow-sky-500/30" title="國字加注音同時呈現">
               國字+注音
             </button>
+            <button id="btn-mode-hybrid" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 text-slate-300 hover:text-white" title="依已教國字庫：教過顯示國字，未教顯示注音">
+              🌟 依已教國字
+            </button>
           </div>
+
+          <!-- Quick Learned Characters Indicator Pill -->
+          <button id="btn-quick-manage-learned" class="hidden md:flex items-center space-x-1 px-2.5 py-1.5 rounded-2xl bg-slate-950/70 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 text-xs font-bold text-slate-300 hover:text-amber-300 transition active:scale-95" title="點擊檢視或新增已教國字">
+            <span>📚</span>
+            <span id="quick-learned-count-badge" class="font-mono text-[11px] text-amber-300">已教 0 字</span>
+          </button>
 
           <!-- Zoom Controller: 聯絡簿區域縮放控制 -->
           <div class="bg-slate-950/70 p-1 rounded-2xl border border-slate-800 flex items-center space-x-1" title="聯絡簿區域縮放控制">
@@ -604,6 +613,71 @@
               <!-- Chips of characters with zhuyin editor -->
               <div id="admin-zhuyin-editor-list" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 bg-slate-950 rounded-xl border border-slate-800">
                 <!-- Dynamically populated character editor cards -->
+              </div>
+            </div>
+
+            <!-- Interactive Learned Characters Manager (一年級循序識字・已教國字庫) -->
+            <div id="learned-chars-manager-section" class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm font-black text-amber-300">📚 一年級循序識字・已教國字庫（字庫持續累加）</span>
+                  <span id="badge-learned-count" class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold font-mono">已累計 0 字</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button type="button" id="btn-toggle-learned-batch" class="text-xs text-sky-400 hover:text-sky-300 underline font-bold">
+                    📝 展開整批編修/貼上
+                  </button>
+                  <button type="button" id="btn-clear-learned-chars" class="text-xs text-rose-400 hover:text-rose-300 font-bold p-1" title="清空國字庫">
+                    🗑️ 清空
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                聯絡簿切換至「<span class="text-amber-300 font-bold">🌟 依已教國字</span>」模式時，此字庫中的字會顯示<span class="text-amber-300 font-bold">國字</span>，尚未教過的字會自動顯示<span class="text-sky-300 font-bold">大注音</span>。字庫會永久儲存並持續累加，換日絕不歸零！
+              </p>
+
+              <!-- Quick Append Input Area -->
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+                <div class="flex items-center space-x-2">
+                  <input type="text" id="input-append-learned-chars" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400" placeholder="輸入本次新教的國字（可直接貼上一整課課文或生字，自動去重累加）...">
+                  <button type="button" id="btn-append-learned-chars" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs shadow-md transition active:scale-95 shrink-0 flex items-center space-x-1">
+                    <span>➕</span>
+                    <span>累加至字庫</span>
+                  </button>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="flex items-center space-x-1.5 flex-wrap gap-1 text-[11px] pt-1">
+                  <span class="text-slate-400">常見常用字一鍵加入：</span>
+                  <button type="button" class="btn-preset-learned px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700" data-chars="一二三四五六七八九十">
+                    + 數字 (一~十)
+                  </button>
+                  <button type="button" class="btn-preset-learned px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700" data-chars="天地日月星木水火土山川石田草">
+                    + 自然天地
+                  </button>
+                  <button type="button" class="btn-preset-learned px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700" data-chars="人手足口目耳頭面心身">
+                    + 身體人物
+                  </button>
+                  <button type="button" class="btn-preset-learned px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-purple-300 border border-slate-700" data-chars="大小多少上下左右前後中">
+                    + 大小方位
+                  </button>
+                </div>
+              </div>
+
+              <!-- Visual Chips of Learned Characters -->
+              <div id="learned-chars-chips-container" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2.5 bg-slate-950 rounded-xl border border-slate-800 min-h-[50px] items-center">
+                <!-- Dynamically populated character chips with delete X button -->
+              </div>
+
+              <!-- Batch Textarea (Hidden by default, toggled by button) -->
+              <div id="learned-chars-batch-box" class="hidden space-y-2 pt-2 border-t border-slate-800">
+                <label class="block text-xs font-bold text-slate-300">完整已教國字庫清單（可直接在此大量貼上、編輯或複製）：</label>
+                <textarea id="textarea-learned-chars-batch" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400"></textarea>
+                <div class="flex justify-end space-x-2">
+                  <button type="button" id="btn-save-learned-batch" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition active:scale-95">
+                    💾 儲存完整字庫
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1019,12 +1093,50 @@
         excludedSeats: [],
         cutoffTime: '08:05',
         password: '8888',
-        sound: true
+        sound: true,
+        learnedCharacters: ''
       },
       daily: {},
       activeAssignments: [],
       activeAssignmentsMigrated: false
     };
+    // ==========================================
+    // LEARNED CHARACTERS REPOSITORY (一年級循序識字・已教國字庫)
+    // ==========================================
+    function getLearnedCharactersSet() {
+      if (!appState || !appState.settings) return new Set();
+      const raw = appState.settings.learnedCharacters || '';
+      const matches = raw.match(/[\u4e00-\u9fa5]/g) || [];
+      return new Set(matches);
+    }
+
+    function isCharacterLearned(ch) {
+      if (!ch || typeof ch !== 'string') return false;
+      return getLearnedCharactersSet().has(ch);
+    }
+
+    function appendLearnedCharacters(newCharsStr) {
+      if (!appState) return 0;
+      if (!appState.settings) appState.settings = {};
+      const currentSet = getLearnedCharactersSet();
+      const initialSize = currentSet.size;
+      const matches = (newCharsStr || '').match(/[\u4e00-\u9fa5]/g) || [];
+      matches.forEach(ch => currentSet.add(ch));
+      const addedCount = currentSet.size - initialSize;
+      appState.settings.learnedCharacters = Array.from(currentSet).join('');
+      saveState();
+      return addedCount;
+    }
+
+    function removeLearnedCharacter(ch) {
+      if (!appState || !appState.settings) return;
+      const currentSet = getLearnedCharactersSet();
+      if (currentSet.delete(ch)) {
+        appState.settings.learnedCharacters = Array.from(currentSet).join('');
+        saveState();
+      }
+    }
+
 
     function getSuperPassword() {
       return localStorage.getItem(SUPER_PASSWORD_KEY) || 'super9999';
@@ -1999,6 +2111,7 @@
       const totalColsCount = Math.max(7, columns.length);
       const isRubyMode = (mode === 'ruby');
       const isZhuyinMode = (mode === 'zhuyin');
+      const isHybridMode = (mode === 'hybrid' || mode === 'learned');
 
       let gridHtml = `
         <div class="w-full flex justify-center py-0.5 select-none">
@@ -2084,6 +2197,31 @@
                 </div>
               </div>
             `;
+          } else if (isHybridMode) {
+            // === 依已教國字模式：教過的字顯示大國字，未教過的字顯示純注音（96px x 88px 大方格） ===
+            const isLearned = isCharacterLearned(token);
+            if (isLearned) {
+              // 已教過國字：置於田字指導格中顯示大國字
+              gridHtml += `
+                <div class="h-[88px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden bg-amber-50/10">
+                  <div class="absolute inset-x-0 top-1/2 border-b border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
+                  <div class="absolute inset-y-0 left-1/2 border-r border-dashed border-[#8ebd9f] pointer-events-none z-0"></div>
+                  <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5">
+                    ${renderVerticalTokenDisplay(token, 'text-5xl')}
+                  </div>
+                </div>
+              `;
+            } else {
+              // 尚未教過國字：置中顯示純直式大注音；若非中文國字（時間/數字/符號）則正常顯示
+              const displayZy = zhuyin || (/^[ㄅ-ㄩ]$/.test(token) ? token : null);
+              gridHtml += `
+                <div class="h-[88px] w-full border-b border-[#2f664a] last:border-b-0 relative flex items-center justify-center overflow-hidden">
+                  <div class="relative z-10 w-full h-full flex items-center justify-center px-0.5 overflow-hidden">
+                    ${displayZy ? formatZhuyinVertical(displayZy, true) : (token ? renderVerticalTokenDisplay(token, 'text-5xl') : '')}
+                  </div>
+                </div>
+              `;
+            }
           } else {
             // === 國字模式：96px x 88px 十字田字格放超大國字 (國字不加粗) ===
             gridHtml += `
@@ -2149,6 +2287,14 @@
               html += `<span class="zhuyin-pure mx-1 text-3xl font-bold">${zhuyin}</span>`;
             } else {
               html += `<span class="text-4xl font-medium text-slate-400 mx-1">${ch}</span>`;
+            }
+          } else if (mode === 'hybrid' || mode === 'learned') {
+            if (isCharacterLearned(ch)) {
+              html += `<span class="text-4xl font-medium text-amber-200 tracking-wide">${ch}</span>`;
+            } else if (zhuyin) {
+              html += `<span class="zhuyin-pure mx-1 text-3xl font-bold text-sky-300">${zhuyin}</span>`;
+            } else {
+              html += `<span class="text-4xl font-medium text-slate-100 inline-block px-0.5">${ch}</span>`;
             }
           } else {
             if (zhuyin) {
@@ -2342,7 +2488,11 @@
       appState.settings.notebookMode = mode;
       saveState();
       renderNotebook();
-      showToast(mode === 'chinese' ? '已切換為純國字模式' : (mode === 'zhuyin' ? '已切換為純注音模式' : '已切換為國字＋注音對照'), '🔤');
+      let msg = '已切換為國字＋注音對照';
+      if (mode === 'chinese') msg = '已切換為純國字模式';
+      else if (mode === 'zhuyin') msg = '已切換為純注音模式';
+      else if (mode === 'hybrid' || mode === 'learned') msg = '已切換為循序識字模式（教過顯示國字，未教顯示注音）';
+      showToast(msg, '🔤');
     }
 
     function setNotebookFormat(fmt) {
@@ -2409,17 +2559,25 @@
       const btnCh = document.getElementById('btn-mode-chinese');
       const btnZh = document.getElementById('btn-mode-zhuyin');
       const btnRb = document.getElementById('btn-mode-ruby');
+      const btnHy = document.getElementById('btn-mode-hybrid');
 
       const activeCls = 'bg-sky-500 text-white shadow-md shadow-sky-500/30';
       const inactiveCls = 'text-slate-300 hover:text-white';
 
-      [btnCh, btnZh, btnRb].forEach(b => {
+      [btnCh, btnZh, btnRb, btnHy].forEach(b => {
         if (b) b.className = `px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${inactiveCls}`;
       });
 
       if (mode === 'chinese' && btnCh) btnCh.className = `px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${activeCls}`;
       if (mode === 'zhuyin' && btnZh) btnZh.className = `px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${activeCls}`;
       if (mode === 'ruby' && btnRb) btnRb.className = `px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 ${activeCls}`;
+      if ((mode === 'hybrid' || mode === 'learned') && btnHy) btnHy.className = `px-2.5 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/30`;
+
+      // Update Quick Learned Count Badge on main screen
+      const quickBadge = document.getElementById('quick-learned-count-badge');
+      if (quickBadge) {
+        quickBadge.textContent = `已教 ${getLearnedCharactersSet().size} 字`;
+      }
 
       // Show / Hide Mask State
       const maskOverlay = document.getElementById('notebook-mask-overlay');
@@ -2770,6 +2928,57 @@
     }
 
     // TEACHER ADMIN LOGIC
+    
+    function renderAdminLearnedCharsUI() {
+      const container = document.getElementById('learned-chars-chips-container');
+      const countBadge = document.getElementById('badge-learned-count');
+      const quickBadge = document.getElementById('quick-learned-count-badge');
+      const batchTextarea = document.getElementById('textarea-learned-chars-batch');
+
+      const charSet = getLearnedCharactersSet();
+      const count = charSet.size;
+
+      if (countBadge) countBadge.textContent = `已累計 ${count} 字`;
+      if (quickBadge) quickBadge.textContent = `已教 ${count} 字`;
+      if (batchTextarea) batchTextarea.value = Array.from(charSet).join('');
+
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (count === 0) {
+        container.innerHTML = '<span class="text-xs text-slate-500 py-1">目前字庫尚無字，請於上方輸入新教的國字並點選「➕ 累加至字庫」！</span>';
+        return;
+      }
+
+      const charsArr = Array.from(charSet);
+      charsArr.forEach(ch => {
+        const chip = document.createElement('div');
+        chip.className = 'inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700/80 text-amber-200 text-sm font-bold shadow-sm hover:border-amber-400 transition';
+        chip.innerHTML = `
+          <span>${ch}</span>
+          <button type="button" class="btn-del-learned-char text-xs text-slate-400 hover:text-rose-400 p-0.5 rounded leading-none transition" data-char="${ch}" title="從字庫移除此字">✕</button>
+        `;
+        container.appendChild(chip);
+      });
+
+      // Bind delete buttons
+      container.querySelectorAll('.btn-del-learned-char').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetChar = btn.getAttribute('data-char');
+          if (targetChar) {
+            removeLearnedCharacter(targetChar);
+            renderAdminLearnedCharsUI();
+            const text = (document.getElementById('admin-notebook-text') || {}).value || '';
+            updateAdminZhuyinEditorList(text);
+            updateAdminNotebookPreview(text);
+            renderNotebook();
+            showToast(`已從國字庫移除「${targetChar}」`, '🗑️');
+          }
+        });
+      });
+    }
+
     function initAdminPanel() {
       // Setting inputs
       document.getElementById('setting-class-name').value = appState.settings.className || '三年二班';
@@ -2801,6 +3010,9 @@
 
       // Homework list
       renderAdminHomeworkList();
+
+      // Learned Characters UI
+      renderAdminLearnedCharsUI();
     }
 
     function loadAdminNotebookDate(dateStr) {
@@ -2861,15 +3073,43 @@
           `).join('');
         }
 
+        const isLearned = isCharacterLearned(ch);
         chip.innerHTML = `
-          <span class="text-lg font-black text-amber-300 font-serif">${ch}</span>
-          <input type="text" class="input-poly-zy w-16 text-center text-xs font-bold bg-slate-950 border border-slate-600 rounded px-1.5 py-1 text-white focus:outline-none focus:border-amber-400" value="${currentZy}" data-char="${ch}" placeholder="注音">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg font-black text-amber-300 font-serif">${ch}</span>
+            <input type="text" class="input-poly-zy w-16 text-center text-xs font-bold bg-slate-950 border border-slate-600 rounded px-1.5 py-1 text-white focus:outline-none focus:border-amber-400" value="${currentZy}" data-char="${ch}" placeholder="注音">
+            <button type="button" class="btn-toggle-char-learned text-[10px] px-2 py-1 rounded-lg font-bold border transition ${
+              isLearned ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm' : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-amber-300 hover:border-amber-400/40'
+            }" data-char="${ch}" title="點擊切換是否列入已教國字庫">
+              ${isLearned ? '✓ 已教國字' : '+ 標為已教'}
+            </button>
+          </div>
           <div class="flex items-center space-x-1">
             ${polyButtonsHtml}
           </div>
         `;
 
         listContainer.appendChild(chip);
+      });
+
+      // Bind quick learned toggles
+      listContainer.querySelectorAll('.btn-toggle-char-learned').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const ch = btn.getAttribute('data-char');
+          if (ch) {
+            if (isCharacterLearned(ch)) {
+              removeLearnedCharacter(ch);
+              showToast(`已將「${ch}」移出已教國字庫`, '📝');
+            } else {
+              appendLearnedCharacters(ch);
+              showToast(`已將「${ch}」加入已教國字庫！`, '📚');
+            }
+            renderAdminLearnedCharsUI();
+            updateAdminZhuyinEditorList(text);
+            updateAdminNotebookPreview(text);
+            renderNotebook();
+          }
+        });
       });
 
       // Bind input changes
@@ -3375,6 +3615,118 @@
       });
       document.getElementById('btn-mode-ruby').addEventListener('click', () => {
         setNotebookMode('ruby');
+      });
+      document.getElementById('btn-mode-hybrid')?.addEventListener('click', () => {
+        setNotebookMode('hybrid');
+      });
+
+      // Quick manage learned characters button on main screen
+      document.getElementById('btn-quick-manage-learned')?.addEventListener('click', () => {
+        document.getElementById('btn-open-admin')?.click();
+        const tabBtn = document.getElementById('tab-btn-notebook');
+        if (tabBtn) tabBtn.click();
+        setTimeout(() => {
+          const el = document.getElementById('learned-chars-manager-section');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+          const inp = document.getElementById('input-append-learned-chars');
+          if (inp) inp.focus();
+        }, 300);
+      });
+
+      // Append new learned characters (累加加入國字庫)
+      document.getElementById('btn-append-learned-chars')?.addEventListener('click', () => {
+        const input = document.getElementById('input-append-learned-chars');
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) {
+          showToast('請輸入本次新教的國字！', '⚠️');
+          return;
+        }
+        const added = appendLearnedCharacters(val);
+        input.value = '';
+        renderAdminLearnedCharsUI();
+        const text = (document.getElementById('admin-notebook-text') || {}).value || '';
+        updateAdminZhuyinEditorList(text);
+        updateAdminNotebookPreview(text);
+        renderNotebook();
+        const total = getLearnedCharactersSet().size;
+        showToast(`已成功累加 ${added} 個新國字！目前字庫共 ${total} 字 🎉`, '📚');
+      });
+
+      // Enter key in append input
+      document.getElementById('input-append-learned-chars')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('btn-append-learned-chars')?.click();
+        }
+      });
+
+      // Presets buttons
+      document.querySelectorAll('.btn-preset-learned').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const chars = btn.getAttribute('data-chars') || '';
+          const added = appendLearnedCharacters(chars);
+          renderAdminLearnedCharsUI();
+          const text = (document.getElementById('admin-notebook-text') || {}).value || '';
+          updateAdminZhuyinEditorList(text);
+          updateAdminNotebookPreview(text);
+          renderNotebook();
+          const total = getLearnedCharactersSet().size;
+          showToast(`已成功累加 ${added} 個字！目前字庫共 ${total} 字`, '📚');
+        });
+      });
+
+      // Toggle batch editor
+      document.getElementById('btn-toggle-learned-batch')?.addEventListener('click', () => {
+        const box = document.getElementById('learned-chars-batch-box');
+        if (box) box.classList.toggle('hidden');
+      });
+
+      // Save batch editor
+      document.getElementById('btn-save-learned-batch')?.addEventListener('click', () => {
+        const textarea = document.getElementById('textarea-learned-chars-batch');
+        if (!textarea) return;
+        const val = textarea.value;
+        const matches = val.match(/[\u4e00-\u9fa5]/g) || [];
+        const unique = Array.from(new Set(matches)).join('');
+        appState.settings.learnedCharacters = unique;
+        saveState();
+        renderAdminLearnedCharsUI();
+        const text = (document.getElementById('admin-notebook-text') || {}).value || '';
+        updateAdminZhuyinEditorList(text);
+        updateAdminNotebookPreview(text);
+        renderNotebook();
+        showToast(`完整國字庫已更新！共計 ${unique.length} 字`, '💾');
+      });
+
+      // Clear learned characters
+      let clearLearnedClickCount = 0;
+      let clearLearnedTimeout = null;
+      const btnClearLearned = document.getElementById('btn-clear-learned-chars');
+      btnClearLearned?.addEventListener('click', () => {
+        clearLearnedClickCount++;
+        if (clearLearnedClickCount === 1) {
+          btnClearLearned.textContent = '⚠️ 確定清空？再按一次確認';
+          btnClearLearned.className = 'text-xs text-rose-300 font-black p-1 animate-pulse bg-rose-950/80 px-2 rounded';
+          clearLearnedTimeout = setTimeout(() => {
+            clearLearnedClickCount = 0;
+            btnClearLearned.textContent = '🗑️ 清空';
+            btnClearLearned.className = 'text-xs text-rose-400 hover:text-rose-300 font-bold p-1';
+          }, 4000);
+        } else if (clearLearnedClickCount >= 2) {
+          clearTimeout(clearLearnedTimeout);
+          clearLearnedClickCount = 0;
+          btnClearLearned.textContent = '🗑️ 清空';
+          btnClearLearned.className = 'text-xs text-rose-400 hover:text-rose-300 font-bold p-1';
+          appState.settings.learnedCharacters = '';
+          saveState();
+          renderAdminLearnedCharsUI();
+          const text = (document.getElementById('admin-notebook-text') || {}).value || '';
+          updateAdminZhuyinEditorList(text);
+          updateAdminNotebookPreview(text);
+          renderNotebook();
+          showToast('已清空已教國字庫', '🧹');
+        }
       });
 
       // Notebook Show/Hide Toggle
